@@ -283,13 +283,13 @@
         }
       });
     }
-    function totalScore(row) {
+    function personTotalScore(row, person = 1) {
       let total = 0;
-      for (let i = 1; i <= STAGES; i++) {
-        total += Number(row[`p1_stage${i}`] || 0);
-        if (row.play_mode === "pair") total += Number(row[`p2_stage${i}`] || 0);
-      }
+      for (let i = 1; i <= STAGES; i++) total += Number(row[`p${person}_stage${i}`] || 0);
       return total;
+    }
+    function totalScore(row) {
+      return personTotalScore(row, 1) + (row.play_mode === "pair" ? personTotalScore(row, 2) : 0);
     }
     function formatScore(value) { return Number(value || 0).toLocaleString("ja-JP"); }
     function sortEntries(entries) {
@@ -298,9 +298,50 @@
     function namesFor(row) {
       return row.play_mode === "pair" ? `${row.player1_name} ＆ ${row.player2_name}` : row.player1_name;
     }
+    // ソロランキングには、ソロ登録者に加えて、ペア登録された各プレイヤーも個人得点で参加させる。
+    function soloRankingEntries() {
+      const entries = [];
+      for (const row of allEntries) {
+        if (row.play_mode === "solo") {
+          entries.push({
+            rankingName: row.player1_name,
+            rankingScore: personTotalScore(row, 1),
+            rankingSourceMode: "solo",
+            created_at: row.created_at,
+            personOrder: 0
+          });
+        } else if (row.play_mode === "pair") {
+          entries.push({
+            rankingName: row.player1_name,
+            rankingScore: personTotalScore(row, 1),
+            rankingSourceMode: "pair",
+            created_at: row.created_at,
+            personOrder: 0
+          });
+          entries.push({
+            rankingName: row.player2_name,
+            rankingScore: personTotalScore(row, 2),
+            rankingSourceMode: "pair",
+            created_at: row.created_at,
+            personOrder: 1
+          });
+        }
+      }
+      return entries.sort((a, b) => b.rankingScore - a.rankingScore || new Date(a.created_at || 0) - new Date(b.created_at || 0) || a.personOrder - b.personOrder);
+    }
     function renderRankCard(mode, title, icon) {
-      const rows = sortEntries(allEntries.filter((entry) => entry.play_mode === mode)).slice(0, 10);
-      const list = rows.length ? `<ol class="ranking-list">${rows.map((row, index) => `<li class="rank-row ${index < 3 ? `top-${index + 1}` : ""}"><span class="rank-number">${index + 1}</span><span class="competitor"><span class="competitor-name">${escapeHTML(namesFor(row))}</span><span class="competitor-sub">${mode === "solo" ? "ソロ参加" : "ペア参加"}</span></span><span class="score-total">${formatScore(totalScore(row))}<small>合計点</small></span></li>`).join("")}</ol>` : `<div class="empty-state"><span class="emoji">${mode === "solo" ? "🧸" : "🧩"}</span>まだ登録データがありません。<br>最初のスコアを登録してみましょう！</div>`;
+      const rows = (mode === "solo"
+        ? soloRankingEntries()
+        : sortEntries(allEntries.filter((entry) => entry.play_mode === "pair")))
+        .slice(0, 10);
+      const list = rows.length ? `<ol class="ranking-list">${rows.map((row, index) => {
+        const competitorName = mode === "solo" ? row.rankingName : namesFor(row);
+        const score = mode === "solo" ? row.rankingScore : totalScore(row);
+        const subtitle = mode === "solo"
+          ? (row.rankingSourceMode === "pair" ? "ペア参加・個人得点" : "ソロ参加")
+          : "ペア参加";
+        return `<li class="rank-row ${index < 3 ? `top-${index + 1}` : ""}"><span class="rank-number">${index + 1}</span><span class="competitor"><span class="competitor-name">${escapeHTML(competitorName)}</span><span class="competitor-sub">${subtitle}</span></span><span class="score-total">${formatScore(score)}<small>合計点</small></span></li>`;
+      }).join("")}</ol>` : `<div class="empty-state"><span class="emoji">${mode === "solo" ? "🧸" : "🧩"}</span>まだ登録データがありません。<br>最初のスコアを登録してみましょう！</div>`;
       return `<section class="ranking-card"><div class="ranking-card-head"><h3>${icon} ${title}</h3><small>TOP 10</small></div>${list}</section>`;
     }
     function renderRanking() {
