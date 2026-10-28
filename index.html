@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#173456">
   <meta name="description" content="イベントのソロ・ペアランキングとステージ別スコアを管理するWebアプリ">
-  <title>現在のランキング</title>
+  <title>TOY BOX RANKING</title>
   <style>
     :root {
       --navy: #173456;
@@ -161,37 +161,148 @@
       .rank-number { width: 31px; height: 31px; }
       .score-total { font-size: 1rem; }
     }
+
+    /* Toy-adventure theme: playful primary colors, toy-block edges, sky and cloud motifs. */
+    :root {
+      --navy: #174f91;
+      --navy-deep: #12325d;
+      --sky: #53c5f0;
+      --cream: #fff8dc;
+      --paper: #fffef9;
+      --yellow: #ffd447;
+      --red: #ef665c;
+      --blue: #2388d1;
+      --green: #31a56f;
+      --ink: #243958;
+      --muted: #657a96;
+      --line: #d8e5f3;
+      --shadow: 0 14px 0 rgba(25,73,122,.08), 0 20px 35px rgba(16,49,90,.16);
+      --radius: 22px;
+    }
+    body {
+      background:
+        radial-gradient(ellipse at 7% 12%, rgba(255,212,71,.30) 0 7rem, transparent 7.2rem),
+        radial-gradient(ellipse at 92% 25%, rgba(83,197,240,.25) 0 8rem, transparent 8.2rem),
+        linear-gradient(180deg, #d9f5ff 0%, #eefaff 33%, #fff8dc 100%);
+      background-attachment: fixed;
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .26;
+      background-image: radial-gradient(#2388d1 1.2px, transparent 1.2px), radial-gradient(#ef665c 1px, transparent 1px);
+      background-position: 0 0, 20px 24px; background-size: 40px 40px, 54px 54px;
+    }
+    .page-wrap { padding-top: clamp(12px, 3vw, 28px); }
+    .hero {
+      background: linear-gradient(135deg, #15315c 0%, #1767ad 48%, #43b8e5 100%);
+      border: 5px solid #fff; border-radius: 30px; box-shadow: 0 7px 0 #d5e5f3, var(--shadow);
+    }
+    .hero::before { width: 230px; height: 230px; right: -55px; top: -100px; border: 24px solid rgba(255,212,71,.45); }
+    .hero::after { width: 155px; height: 95px; right: 80px; bottom: -70px; border-radius: 80px 80px 0 0; background: rgba(255,255,255,.13); }
+    .hero h1 { letter-spacing: -.035em; text-shadow: 0 4px 0 #0d2547, 0 7px 0 rgba(0,0,0,.12); }
+    .hero h1 span { color: var(--yellow); -webkit-text-stroke: .4px rgba(255,255,255,.45); }
+    .hero p { font-weight: 650; }
+    .sticker { border-radius: 15px; box-shadow: 0 5px 0 rgba(7,26,52,.25); }
+    .status-line { color: #405e7e; font-weight: 700; }
+    .main-nav { background: #174f91; border: 3px solid #fff; border-radius: 18px; box-shadow: 0 5px 0 rgba(20,68,117,.12); }
+    .nav-btn { color: #d9f2ff; }
+    .nav-btn.active { background: var(--yellow); color: #533d00; box-shadow: 0 4px 0 #d2a82a; }
+    .panel { border: 3px solid #fff; background: rgba(255,254,249,.97); box-shadow: 0 5px 0 #e0eaf4, 0 14px 30px rgba(23,70,115,.09); }
+    .panel-head h2 { color: #174f91; text-shadow: 0 2px 0 #e3f3ff; }
+    .pill { background: #e0f5ff; color: #155c91; border: 1px solid #b9e5f8; }
+    .ranking-card { border: 2px solid #d6e6f3; border-radius: 20px; box-shadow: 0 5px 0 #edf2f6; }
+    .ranking-card-head { background: linear-gradient(110deg, #174f91, #2388d1); border-bottom: 4px solid #ffd447; }
+    .ranking-card:nth-child(2) .ranking-card-head { background: linear-gradient(110deg, #d94f50, #f47c62); border-bottom-color: #ffd447; }
+    .rank-row { background: rgba(255,255,255,.92); }
+    .rank-row:nth-child(even) { background: #f5fbff; }
+    .rank-number { border-radius: 10px 14px 10px 14px; }
+    .rank-row.top-1 { background: #fff7d7; }
+    .rank-row.top-2 { background: #f2f8ff; }
+    .rank-row.top-3 { background: #fff0e8; }
+    .score-total { color: #174f91; }
+    .btn { border-radius: 13px; }
+    .btn-primary { background: #ffd447; box-shadow: 0 4px 0 #d5a924; }
+    .btn-blue { background: #174f91; box-shadow: 0 4px 0 #0e2f57; }
+    .btn-quiet { background: #e4f3fb; color: #24547c; }
+    .field input, .field select { border: 2px solid #d4e3ef; }
+    .stage-box { background: linear-gradient(135deg, #f0fbff, #fff7d9); border: 2px dashed #9bcbe3; }
+    .site-footer { color: #57718c; font-weight: 650; }
+    .rank-page-nav { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 9px; padding: 8px; margin: 0 0 20px; background: #e2f4ff; border: 2px solid #fff; border-radius: 17px; box-shadow: 0 4px 0 #d4e6f2; }
+    .rank-page-btn { min-width: 0; border: 2px solid transparent; border-radius: 12px; padding: 12px 10px; background: transparent; color: #3d6486; font-weight: 950; transition: transform .14s, background .14s, box-shadow .14s; }
+    .rank-page-btn:hover { transform: translateY(-1px); background: #f8fdff; }
+    .rank-page-btn.active { background: var(--yellow); color: #513c00; border-color: #fff; box-shadow: 0 4px 0 #d9ad31; }
+    .rank-page-choices { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin-top: 19px; }
+    .rank-choice { display: flex; align-items: center; gap: 12px; width: 100%; min-width: 0; text-align: left; border: 2px solid #fff; border-radius: 18px; padding: 17px; color: #fff; box-shadow: 0 5px 0 rgba(20,65,109,.18); transition: transform .14s, filter .14s; }
+    .rank-choice:hover { transform: translateY(-2px); filter: brightness(1.03); }
+    .solo-choice { background: linear-gradient(130deg, #1d68ac, #48b7e2); }
+    .pair-choice { background: linear-gradient(130deg, #db5557, #fa9763); }
+    .choice-icon { display: grid; place-items: center; flex: 0 0 47px; width: 47px; height: 47px; border-radius: 14px; background: rgba(255,255,255,.2); border: 2px solid rgba(255,255,255,.55); font-size: 1.65rem; }
+    .choice-text { min-width: 0; flex: 1; }
+    .choice-text strong { display: block; line-height: 1.4; font-size: 1rem; }
+    .choice-text small { display: block; line-height: 1.5; margin-top: 4px; color: rgba(255,255,255,.9); font-weight: 650; }
+    .choice-arrow { font-size: 1.45rem; font-weight: 1000; }
+    .page-intro { display: flex; align-items: center; gap: 13px; padding: 17px 19px; margin-bottom: 16px; border: 2px solid #fff; border-radius: 17px; box-shadow: 0 4px 0 rgba(29,87,135,.08); }
+    .solo-intro { background: linear-gradient(100deg, #e1f5ff, #f7fcff); }
+    .pair-intro { background: linear-gradient(100deg, #ffede4, #fff9ed); }
+    .page-intro-icon { display: grid; place-items: center; flex: 0 0 48px; height: 48px; border-radius: 15px; background: #fff; box-shadow: 0 3px 0 rgba(16,49,90,.1); font-size: 1.75rem; }
+    .page-intro h3 { margin: 0; color: #174f91; font-size: 1.12rem; }
+    .page-intro p { margin: 5px 0 0; color: #617792; line-height: 1.65; font-size: .88rem; }
+    #soloRankingFull .ranking-card-head { background: linear-gradient(110deg, #174f91, #2388d1); }
+    #pairRankingFull .ranking-card-head { background: linear-gradient(110deg, #d94f50, #f47c62); }
+    .public-mode .main-nav { display: flex !important; }
+    .public-mode .main-nav #navAdmin { display: none !important; }
+    .public-mode .rank-page-nav { margin-top: 2px; }
+    @media (max-width: 760px) {
+      .rank-page-nav { grid-template-columns: 1fr; gap: 6px; }
+      .rank-page-btn { padding: 12px; }
+      .rank-page-choices { grid-template-columns: 1fr; }
+      .page-intro { align-items: flex-start; padding: 14px; }
+    }
+
   </style>
 </head>
 <body>
   <main class="page-wrap">
     <header class="hero">
-      <div class="eyebrow">✦ EVENT SCOREBOARD · EST. 2026</div>
+      <div class="eyebrow">✦ TOY ADVENTURE SCORE QUEST · EST. 2026</div>
       <h1>TOY BOX <span>RANKING</span></h1>
-      <p>みなさんのスコアとランキングを閲覧できます。<br>ひとりとペアそれぞれのランキングが表示されます。</p>
-      <div class="hero-stickers" aria-hidden="true"><span class="sticker">★</span><span class="sticker">✦</span><span class="sticker">➤</span></div>
+      <p>おもちゃ箱から冒険へ飛び出そう！<br>ソロもペアも、みんなのスコアが大集合。</p>
+      <div class="hero-stickers" aria-hidden="true"><span class="sticker">★</span><span class="sticker">🚀</span><span class="sticker">🧸</span><span class="sticker">🪁</span></div>
     </header>
     <div class="status-line" aria-live="polite"><span id="statusDot" class="status-dot offline"></span><span id="connectionStatus">接続情報を確認しています…</span><span id="lastUpdated"></span></div>
     <div id="configNotice" class="config-notice"><strong>あと少しで接続できます！</strong><br>index.html内の <code>SUPABASE_URL</code>、<code>SUPABASE_PUBLISHABLE_KEY</code>、<code>ADMIN_USER_ID</code> を、READMEの手順に沿って設定してください。秘密鍵（service_role / sb_secret）は入力しないでください。</div>
 
     <nav class="main-nav" aria-label="メインメニュー">
-      <button class="nav-btn active" id="navRanking" type="button">🏆 ランキング</button>
+      <button class="nav-btn active" id="navRanking" type="button">🏆 ランキングトップ</button>
       <button class="nav-btn" id="navAdmin" type="button">🧰 管理者メニュー</button>
     </nav>
 
     <section id="rankingPanel" class="panel">
       <div class="panel-head">
-        <div><h2>🏆 ランキング</h2><p>合計点が高い順に表示します。各部門の上位10組です。</p></div>
+        <div><h2 id="rankPageTitle">🏆 ランキングトップ</h2><p id="rankPageDescription">各部門のトップ10をチェックして、全順位ページへ進もう！</p></div>
         <div class="button-row"><span class="pill">↻ 自動更新</span><button id="refreshButton" type="button" class="btn btn-quiet btn-small">再読み込み</button></div>
       </div>
-      <div class="segmented" aria-label="ランキング表示">
-        <button type="button" class="segment-btn active" id="showBoth" aria-pressed="true">ソロ＋ペア</button>
-        <button type="button" class="segment-btn" id="showSolo" aria-pressed="false">ソロ</button>
-        <button type="button" class="segment-btn" id="showPair" aria-pressed="false">ペア</button>
+      <nav class="rank-page-nav" aria-label="ランキングページ">
+        <button type="button" class="rank-page-btn active" data-rank-page="ranking">🏆 ランキングトップ</button>
+        <button type="button" class="rank-page-btn" data-rank-page="solo">⭐ ソロ全順位</button>
+        <button type="button" class="rank-page-btn" data-rank-page="pair">🤝 ペア全順位</button>
+      </nav>
+      <div id="rankingTopContent">
+        <div id="rankingGrid" class="ranking-grid">
+          <div class="ranking-card"><div class="ranking-card-head"><h3>⭐ ソロ部門</h3><small>TOP 10</small></div><div class="empty-state"><span class="emoji">🧸</span>データを読み込んでいます…</div></div>
+          <div class="ranking-card"><div class="ranking-card-head"><h3>🤝 ペア部門</h3><small>TOP 10</small></div><div class="empty-state"><span class="emoji">🧩</span>データを読み込んでいます…</div></div>
+        </div>
+        <div class="rank-page-choices">
+          <button type="button" class="rank-choice solo-choice" data-rank-page="solo"><span class="choice-icon">⭐</span><span class="choice-text"><strong>ソロランキングを全部見る</strong><small>ソロ参加者と、ペア参加者それぞれの個人得点を全順位で表示</small></span><span class="choice-arrow">➜</span></button>
+          <button type="button" class="rank-choice pair-choice" data-rank-page="pair"><span class="choice-icon">🤝</span><span class="choice-text"><strong>ペアランキングを全部見る</strong><small>ペア全組を合計点の高い順に表示</small></span><span class="choice-arrow">➜</span></button>
+        </div>
       </div>
-      <div id="rankingGrid" class="ranking-grid">
-        <div class="ranking-card"><div class="ranking-card-head"><h3>⭐ ソロ部門</h3><small>TOP 10</small></div><div class="empty-state"><span class="emoji">🧸</span>データを読み込んでいます…</div></div>
-        <div class="ranking-card"><div class="ranking-card-head"><h3>🤝 ペア部門</h3><small>TOP 10</small></div><div class="empty-state"><span class="emoji">🧩</span>データを読み込んでいます…</div></div>
+      <div id="soloRankingContent" class="hidden">
+        <div class="page-intro solo-intro"><span class="page-intro-icon">⭐</span><div><h3>ソロランキング・全順位</h3><p>ソロ参加者に加えて、ペアで参加した各プレイヤーも個人得点でランクインします。</p></div></div>
+        <div id="soloRankingFull"></div>
+      </div>
+      <div id="pairRankingContent" class="hidden">
+        <div class="page-intro pair-intro"><span class="page-intro-icon">🤝</span><div><h3>ペアランキング・全順位</h3><p>各ペアの2人分の点数を合計して、全組を表示します。</p></div></div>
+        <div id="pairRankingFull"></div>
       </div>
       <div id="rankingMessage" class="message" role="status"></div>
     </section>
@@ -230,7 +341,7 @@
         <div class="entry-table-wrap"><table><thead><tr><th>形式</th><th>参加者</th><th>合計点</th><th>操作</th></tr></thead><tbody id="entriesTable"><tr><td colspan="4" class="empty-state">データを読み込んでいます…</td></tr></tbody></table></div>
       </div>
     </section>
-    <footer class="site-footer">TOY BOX RANKING · オリジナルのおもちゃ箱風デザイン<br>ランキングは共有データです。参加者名と点数は公開されるため、個人情報は入力しないでください。</footer>
+    <footer class="site-footer">TOY ADVENTURE RANKING · オリジナルのおもちゃ箱アドベンチャーデザイン<br>ランキングは共有データです。参加者名と点数は公開されるため、個人情報は入力しないでください。</footer>
   </main>
 
   <div id="qrModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
@@ -255,8 +366,9 @@
     let allEntries = [];
     let currentUser = null;
     let editingId = null;
-    let rankingFilter = "both";
-    let publicView = new URLSearchParams(location.search).get("view") === "ranking";
+    const initialView = new URLSearchParams(location.search).get("view");
+    let currentRankPage = ["ranking", "solo", "pair"].includes(initialView) ? initialView : "ranking";
+    let publicView = ["ranking", "solo", "pair"].includes(initialView);
     let refreshTimer = null;
 
     function escapeHTML(value) {
@@ -329,32 +441,62 @@
       }
       return entries.sort((a, b) => b.rankingScore - a.rankingScore || new Date(a.created_at || 0) - new Date(b.created_at || 0) || a.personOrder - b.personOrder);
     }
-    function renderRankCard(mode, title, icon) {
-      const rows = (mode === "solo"
+    function rankingRowsFor(mode) {
+      return mode === "solo"
         ? soloRankingEntries()
-        : sortEntries(allEntries.filter((entry) => entry.play_mode === "pair")))
-        .slice(0, 10);
+        : sortEntries(allEntries.filter((entry) => entry.play_mode === "pair"));
+    }
+    function renderRankCard(mode, title, icon, limit = null) {
+      const allRows = rankingRowsFor(mode);
+      const rows = Number.isInteger(limit) ? allRows.slice(0, limit) : allRows;
+      const countLabel = Number.isInteger(limit) ? `TOP ${limit}` : (mode === "solo" ? `${allRows.length}人` : `${allRows.length}組`);
       const list = rows.length ? `<ol class="ranking-list">${rows.map((row, index) => {
         const competitorName = mode === "solo" ? row.rankingName : namesFor(row);
         const score = mode === "solo" ? row.rankingScore : totalScore(row);
         const subtitle = mode === "solo"
           ? (row.rankingSourceMode === "pair" ? "ペア参加・個人得点" : "ソロ参加")
-          : "ペア参加";
+          : "ペア参加・2人の合計点";
         return `<li class="rank-row ${index < 3 ? `top-${index + 1}` : ""}"><span class="rank-number">${index + 1}</span><span class="competitor"><span class="competitor-name">${escapeHTML(competitorName)}</span><span class="competitor-sub">${subtitle}</span></span><span class="score-total">${formatScore(score)}<small>合計点</small></span></li>`;
-      }).join("")}</ol>` : `<div class="empty-state"><span class="emoji">${mode === "solo" ? "🧸" : "🧩"}</span>まだ登録データがありません。<br>最初のスコアを登録してみましょう！</div>`;
-      return `<section class="ranking-card"><div class="ranking-card-head"><h3>${icon} ${title}</h3><small>TOP 10</small></div>${list}</section>`;
+      }).join("")}</ol>` : `<div class="empty-state"><span class="emoji">${mode === "solo" ? "🧸" : "🧩"}</span>まだ登録データがありません。<br>ランキングにスコアが登録されると、ここに表示されます。</div>`;
+      return `<section class="ranking-card"><div class="ranking-card-head"><h3>${icon} ${title}</h3><small>${countLabel}</small></div>${list}</section>`;
+    }
+    function navigateRankPage(page, updateUrl = true) {
+      if (!["ranking", "solo", "pair"].includes(page)) page = "ranking";
+      currentRankPage = page;
+      if (updateUrl) {
+        const url = new URL(location.href);
+        url.search = `?view=${page}`;
+        url.hash = "";
+        history.pushState({ rankPage: page }, "", url);
+      }
+      switchPanel("ranking");
+      renderRanking();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
     function renderRanking() {
-      let html = "";
-      if (rankingFilter !== "pair") html += renderRankCard("solo", "ソロ部門", "⭐");
-      if (rankingFilter !== "solo") html += renderRankCard("pair", "ペア部門", "🤝");
-      $("rankingGrid").innerHTML = html;
-      $("showBoth").classList.toggle("active", rankingFilter === "both");
-      $("showSolo").classList.toggle("active", rankingFilter === "solo");
-      $("showPair").classList.toggle("active", rankingFilter === "pair");
-      $("showBoth").setAttribute("aria-pressed", String(rankingFilter === "both"));
-      $("showSolo").setAttribute("aria-pressed", String(rankingFilter === "solo"));
-      $("showPair").setAttribute("aria-pressed", String(rankingFilter === "pair"));
+      const topView = currentRankPage === "ranking";
+      const soloView = currentRankPage === "solo";
+      const pairView = currentRankPage === "pair";
+      $("rankPageTitle").textContent = topView ? "🏆 ランキングトップ" : soloView ? "⭐ ソロランキング・全順位" : "🤝 ペアランキング・全順位";
+      $("rankPageDescription").textContent = topView
+        ? "各部門のトップ10をチェックして、全順位ページへ進もう！"
+        : soloView
+          ? "ソロ参加者とペア参加者の個人得点を、すべて順位順に表示します。"
+          : "ペア全組を、2人の合計点が高い順に表示します。";
+      $("rankingTopContent").classList.toggle("hidden", !topView);
+      $("soloRankingContent").classList.toggle("hidden", !soloView);
+      $("pairRankingContent").classList.toggle("hidden", !pairView);
+      document.querySelectorAll("[data-rank-page]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.rankPage === currentRankPage);
+        if (button.classList.contains("rank-page-btn")) button.setAttribute("aria-current", button.dataset.rankPage === currentRankPage ? "page" : "false");
+      });
+      if (topView) {
+        $("rankingGrid").innerHTML = renderRankCard("solo", "ソロ部門", "⭐", 10) + renderRankCard("pair", "ペア部門", "🤝", 10);
+      } else if (soloView) {
+        $("soloRankingFull").innerHTML = renderRankCard("solo", "ソロ部門・全順位", "⭐");
+      } else {
+        $("pairRankingFull").innerHTML = renderRankCard("pair", "ペア部門・全順位", "🤝");
+      }
     }
     function renderEntriesTable() {
       const rows = sortEntries(allEntries);
@@ -375,7 +517,7 @@
         if (currentUser && currentUser.id === ADMIN_USER_ID) renderEntriesTable();
         const time = new Date();
         $("lastUpdated").textContent = `最終更新 ${time.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}`;
-        setConnection(true, "更新可能です。");
+        setConnection(true, "Supabaseに接続済み");
         hideMessage($("rankingMessage"));
       } catch (error) {
         setConnection(false, "データの読み込みに失敗");
@@ -562,14 +704,18 @@
       if (publicView) {
         document.body.classList.add("public-mode");
         switchPanel("ranking");
-        $("navRanking").classList.add("hidden");
-        $("navAdmin").classList.add("hidden");
       }
-      $("navRanking").addEventListener("click", () => switchPanel("ranking"));
+      $("navRanking").addEventListener("click", () => navigateRankPage("ranking"));
       $("navAdmin").addEventListener("click", () => switchPanel("admin"));
-      $("showBoth").addEventListener("click", () => { rankingFilter = "both"; renderRanking(); });
-      $("showSolo").addEventListener("click", () => { rankingFilter = "solo"; renderRanking(); });
-      $("showPair").addEventListener("click", () => { rankingFilter = "pair"; renderRanking(); });
+      document.querySelectorAll("[data-rank-page]").forEach((button) => {
+        button.addEventListener("click", () => navigateRankPage(button.dataset.rankPage));
+      });
+      window.addEventListener("popstate", () => {
+        const view = new URLSearchParams(location.search).get("view");
+        currentRankPage = ["ranking", "solo", "pair"].includes(view) ? view : "ranking";
+        switchPanel("ranking");
+        renderRanking();
+      });
       $("refreshButton").addEventListener("click", () => loadScores(true));
       $("playMode").addEventListener("change", syncModeFields);
       $("scoreForm").addEventListener("submit", handleScoreSubmit);
