@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173456">
+  <meta name="description" content="イベントのソロ・ペアランキングとステージ別スコアを管理するWebアプリ">
+  <title>TOY BOX RANKING</title>
+  <style>
+    :root {
+      --navy: #173456;
+      --navy-deep: #0d223b;
+      --sky: #68c8eb;
+      --cream: #fff8e8;
+      --paper: #fffdf7;
+      --yellow: #ffcf48;
+      --red: #ed6657;
+      --blue: #3d8dcc;
+      --green: #2c9c78;
+      --ink: #20354d;
+      --muted: #718097;
+      --line: #dbe3eb;
+      --shadow: 0 14px 34px rgba(12, 32, 55, .16);
+      --radius: 20px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; min-height: 100vh; color: var(--ink);
+      font-family: ui-rounded, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
+      background: radial-gradient(circle at 12% 5%, rgba(255,207,72,.25), transparent 24rem),
+                  radial-gradient(circle at 90% 20%, rgba(104,200,235,.22), transparent 26rem),
+                  var(--cream);
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #68c8eb; outline-offset: 2px; }
+    .page-wrap { width: min(1120px, calc(100% - 28px)); margin: 0 auto; padding: 24px 0 50px; }
+    .hero {
+      position: relative; overflow: hidden; padding: clamp(24px, 5vw, 44px); border-radius: 28px;
+      background: linear-gradient(135deg, var(--navy-deep), var(--navy) 60%, #235c83); color: white;
+      box-shadow: var(--shadow); border: 4px solid rgba(255,255,255,.68);
+    }
+    .hero::before, .hero::after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; }
+    .hero::before { width: 210px; height: 210px; right: -45px; top: -80px; border: 22px solid rgba(255,207,72,.24); }
+    .hero::after { width: 120px; height: 120px; right: 105px; bottom: -85px; background: rgba(104,200,235,.18); }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-weight: 900; color: var(--yellow); letter-spacing: .12em; font-size: .78rem; }
+    .hero h1 { position: relative; margin: 12px 0 8px; font-size: clamp(2rem, 6vw, 3.6rem); line-height: 1; letter-spacing: -.04em; text-shadow: 0 4px 0 rgba(0,0,0,.18); }
+    .hero h1 span { color: var(--yellow); }
+    .hero p { position: relative; margin: 14px 0 0; max-width: 620px; line-height: 1.8; color: #e0eef7; }
+    .hero-scoreboard {
+      position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 12px;
+      max-width: 100%; margin-top: 19px; padding: 12px 17px 12px 13px;
+      border: 2px solid rgba(255,255,255,.78); border-radius: 17px;
+      background: linear-gradient(135deg, rgba(255,255,255,.19), rgba(255,255,255,.09));
+      box-shadow: 0 5px 0 rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.18);
+      backdrop-filter: blur(3px);
+    }
+    .hero-scoreboard-icon {
+      display: grid; place-items: center; flex: 0 0 43px; height: 43px; border-radius: 13px;
+      background: var(--yellow); color: #5f4200; border: 2px solid rgba(255,255,255,.88);
+      box-shadow: 0 3px 0 #d6a52a; font-size: 1.4rem;
+    }
+    .hero-scoreboard-copy { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .hero-scoreboard-label { color: var(--yellow); font-size: .82rem; font-weight: 1000; letter-spacing: .04em; }
+    .hero-scoreboard-value { display: flex; align-items: baseline; gap: 5px; font-size: clamp(1.45rem, 4vw, 2.05rem); line-height: 1.15; font-weight: 1000; font-variant-numeric: tabular-nums; color: #fff; text-shadow: 0 3px 0 rgba(0,0,0,.16); overflow-wrap: anywhere; }
+    .hero-scoreboard-value small { font-size: .78rem; font-weight: 900; color: #e0eef7; text-shadow: none; }
+    .hero-scoreboard-note { color: #d4e8f5; font-size: .7rem; line-height: 1.35; }
+    .hero-stickers { position: absolute; right: 32px; bottom: 24px; display: flex; gap: 9px; transform: rotate(-5deg); }
+    .sticker { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; color: var(--navy); font-size: 1.35rem; box-shadow: 0 4px 0 rgba(0,0,0,.15); border: 2px solid white; }
+    .sticker:nth-child(1) { background: var(--yellow); transform: rotate(-9deg); }
+    .sticker:nth-child(2) { background: var(--red); transform: rotate(7deg); color: white; }
+    .sticker:nth-child(3) { background: var(--sky); transform: rotate(-3deg); }
+    .status-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 15px 2px 0; color: var(--muted); font-size: .88rem; }
+    .status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); display: inline-block; }
+    .status-dot.offline { background: #e7a13b; }
+    .config-notice { display: none; margin: 18px 0; padding: 14px 16px; border: 1px solid #e7bb5f; border-radius: 14px; background: #fff1c9; line-height: 1.7; }
+    .config-notice.show { display: block; }
+    .main-nav { display: flex; gap: 10px; margin: 22px 0 18px; padding: 7px; background: #e9eef3; border-radius: 16px; }
+    .nav-btn { flex: 1; border: 0; background: transparent; border-radius: 11px; padding: 13px 15px; color: #52657c; font-weight: 900; transition: .15s; }
+    .nav-btn.active { background: white; color: var(--navy); box-shadow: 0 3px 12px rgba(25,50,75,.09); }
+    .panel { background: rgba(255,253,247,.96); border: 1px solid #e4e9ec; border-radius: var(--radius); padding: clamp(16px, 3vw, 27px); box-shadow: 0 8px 24px rgba(20,48,74,.07); }
+    .panel-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .panel-head h2 { margin: 0; font-size: clamp(1.4rem, 3vw, 1.9rem); color: var(--navy); }
+    .panel-head p { margin: 5px 0 0; color: var(--muted); font-size: .92rem; line-height: 1.6; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 999px; font-size: .78rem; font-weight: 900; background: #eaf5fb; color: #21658b; }
+    .segmented { display: flex; gap: 7px; padding: 5px; background: #edf1f5; border-radius: 13px; width: fit-content; max-width: 100%; }
+    .segment-btn { border: 0; border-radius: 9px; background: transparent; padding: 10px 18px; color: #607189; font-weight: 900; }
+    .segment-btn.active { color: var(--navy); background: white; box-shadow: 0 2px 8px rgba(15,40,64,.10); }
+    .ranking-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
+    .ranking-card { min-width: 0; border: 1px solid #e0e6ec; border-radius: 18px; overflow: hidden; background: white; }
+    .ranking-card-head { padding: 17px 18px; background: var(--navy); color: white; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .ranking-card-head h3 { margin: 0; font-size: 1.12rem; }
+    .ranking-card-head small { color: #c5e0f1; }
+    .ranking-list { list-style: none; padding: 0; margin: 0; }
+    .rank-row { display: grid; grid-template-columns: 44px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 13px 15px; border-bottom: 1px solid #edf0f4; }
+    .rank-row:last-child { border-bottom: 0; }
+    .rank-number { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px; background: #eff3f6; color: #6d7a8b; font-weight: 1000; }
+    .rank-row.top-1 .rank-number { background: var(--yellow); color: #5f4200; }
+    .rank-row.top-2 .rank-number { background: #dce5ed; color: #394e62; }
+    .rank-row.top-3 .rank-number { background: #e8b28d; color: #69391e; }
+    .competitor { min-width: 0; }
+    .competitor-name { display: block; font-weight: 900; overflow-wrap: anywhere; }
+    .competitor-sub { display: block; color: var(--muted); font-size: .75rem; margin-top: 3px; }
+    .score-total { text-align: right; white-space: nowrap; font-weight: 1000; font-size: 1.12rem; color: var(--navy); }
+    .score-total small { display: block; font-size: .7rem; color: var(--muted); font-weight: 700; }
+    .empty-state { padding: 28px 16px; text-align: center; color: var(--muted); line-height: 1.7; }
+    .empty-state .emoji { display: block; font-size: 2rem; margin-bottom: 6px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+    .field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+    .field label { font-size: .88rem; color: #53657b; font-weight: 900; }
+    .field input, .field select { width: 100%; min-width: 0; padding: 12px 13px; border: 1px solid #cfd9e2; border-radius: 11px; background: white; color: var(--ink); }
+    .field input:focus, .field select:focus { border-color: var(--blue); outline: 3px solid rgba(61,141,204,.15); }
+    .stage-box { padding: 16px; border-radius: 16px; background: #f3f7fa; border: 1px dashed #c7d7e2; margin: 17px 0; }
+    .stage-box h3 { margin: 0 0 12px; font-size: 1rem; color: var(--navy); }
+    .stage-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 11px; }
+    .stage-grid .field label { font-size: .8rem; }
+    .stage-grid .field input { padding: 11px 9px; }
+    .field-help { color: var(--muted); font-size: .78rem; margin-top: 3px; }
+    .pair-section { display: none; }
+    .pair-section.show { display: block; }
+    .pair-title { display: flex; align-items: center; gap: 8px; margin: 18px 0 10px; font-weight: 1000; color: var(--navy); }
+    .button-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .btn { display: inline-flex; justify-content: center; align-items: center; gap: 7px; border: 0; border-radius: 12px; padding: 12px 17px; font-weight: 1000; transition: transform .12s, filter .12s; }
+    .btn:hover { filter: brightness(.98); transform: translateY(-1px); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-primary { background: var(--yellow); color: #493800; box-shadow: 0 4px 0 #dbad2d; }
+    .btn-blue { background: var(--navy); color: white; box-shadow: 0 4px 0 #0a1c30; }
+    .btn-quiet { background: #e9eef3; color: #465c72; }
+    .btn-danger { background: #ffe8e5; color: #a7352c; }
+    .btn-small { padding: 8px 10px; border-radius: 9px; font-size: .8rem; }
+    .admin-divider { height: 1px; border: 0; background: var(--line); margin: 25px 0; }
+    .admin-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 4px 0 12px; }
+    .admin-toolbar h3 { margin: 0; font-size: 1.1rem; color: var(--navy); }
+    .entry-table-wrap { overflow-x: auto; border: 1px solid #e0e6ec; border-radius: 13px; background: white; }
+    table { width: 100%; border-collapse: collapse; min-width: 660px; }
+    th, td { padding: 12px 13px; text-align: left; border-bottom: 1px solid #edf0f4; font-size: .86rem; vertical-align: middle; }
+    th { background: #f0f5f8; color: #52657a; font-size: .77rem; white-space: nowrap; }
+    tr:last-child td { border-bottom: 0; }
+    .table-actions { display: flex; gap: 6px; }
+    .mode-chip { display: inline-flex; padding: 4px 8px; border-radius: 999px; background: #eaf5fb; color: #21658b; font-weight: 900; font-size: .73rem; }
+    .mode-chip.pair { background: #fff0ce; color: #7e5b00; }
+    .login-box { max-width: 480px; margin: 0 auto; padding: 22px; border: 1px solid var(--line); border-radius: 17px; background: white; }
+    .login-box h3 { margin: 0 0 6px; color: var(--navy); }
+    .login-box > p { color: var(--muted); margin: 0 0 18px; line-height: 1.7; font-size: .9rem; }
+    .login-box .field { margin-bottom: 13px; }
+    .message { display: none; margin: 12px 0 0; padding: 11px 13px; border-radius: 11px; font-size: .87rem; line-height: 1.6; }
+    .message.show { display: block; }
+    .message.error { color: #8d2f28; background: #ffeae7; border: 1px solid #f2c6c0; }
+    .message.success { color: #226449; background: #e7f7ef; border: 1px solid #c2e7d3; }
+    .message.info { color: #245a78; background: #e8f5fb; border: 1px solid #c5e2f0; }
+    .hidden { display: none !important; }
+    .site-footer { margin-top: 20px; padding: 15px 5px; color: #7a8795; font-size: .78rem; text-align: center; line-height: 1.8; }
+    .modal-backdrop { display: none; position: fixed; inset: 0; z-index: 20; background: rgba(7,20,35,.65); padding: 20px; align-items: center; justify-content: center; }
+    .modal-backdrop.show { display: flex; }
+    .modal { width: min(420px, 100%); background: white; border-radius: 20px; padding: 22px; box-shadow: var(--shadow); text-align: center; }
+    .modal h2 { margin: 0 0 7px; color: var(--navy); }
+    .modal p { color: var(--muted); font-size: .9rem; line-height: 1.6; }
+    #qrcode { display: flex; justify-content: center; padding: 14px; margin: 12px auto; width: fit-content; border: 1px solid var(--line); border-radius: 12px; min-height: 20px; }
+    #qrcode img, #qrcode canvas { max-width: 100%; height: auto; }
+    .public-mode .page-wrap { max-width: 1180px; }
+    .public-mode .hero { padding-bottom: 35px; }
+    .public-mode .main-nav, .public-mode #adminPanel, .public-mode #configNotice, .public-mode .qr-launch { display: none !important; }
+    @media (max-width: 760px) {
+      .hero-stickers { right: 16px; top: 18px; bottom: auto; transform: scale(.82) rotate(-5deg); transform-origin: top right; }
+      .hero h1 { max-width: 75%; }
+      .hero p { max-width: 100%; }
+      .hero-scoreboard { margin-top: 16px; padding: 10px 13px 10px 10px; }
+      .hero-scoreboard-icon { flex-basis: 38px; height: 38px; border-radius: 11px; }
+      .hero-scoreboard-value { font-size: clamp(1.3rem, 6vw, 1.8rem); }
+      .ranking-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .stage-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .page-wrap { width: min(100% - 18px, 1120px); padding-top: 10px; }
+      .hero { border-radius: 20px; }
+      .nav-btn { padding: 12px 8px; font-size: .88rem; }
+    }
+    @media (max-width: 400px) {
+      .hero-stickers { opacity: .65; transform: scale(.66) rotate(-5deg); }
+      .hero h1 { max-width: 100%; font-size: 2rem; }
+      .rank-row { grid-template-columns: 38px minmax(0,1fr) auto; gap: 7px; padding: 12px 9px; }
+      .rank-number { width: 31px; height: 31px; }
+      .score-total { font-size: 1rem; }
+    }
+
+    /* Toy-adventure theme: playful primary colors, toy-block edges, sky and cloud motifs. */
+    :root {
+      --navy: #174f91;
+      --navy-deep: #12325d;
+      --sky: #53c5f0;
+      --cream: #fff8dc;
+      --paper: #fffef9;
+      --yellow: #ffd447;
+      --red: #ef665c;
+      --blue: #2388d1;
+      --green: #31a56f;
+      --ink: #243958;
+      --muted: #657a96;
+      --line: #d8e5f3;
+      --shadow: 0 14px 0 rgba(25,73,122,.08), 0 20px 35px rgba(16,49,90,.16);
+      --radius: 22px;
+    }
+    body {
+      background:
+        radial-gradient(ellipse at 7% 12%, rgba(255,212,71,.30) 0 7rem, transparent 7.2rem),
+        radial-gradient(ellipse at 92% 25%, rgba(83,197,240,.25) 0 8rem, transparent 8.2rem),
+        linear-gradient(180deg, #d9f5ff 0%, #eefaff 33%, #fff8dc 100%);
+      background-attachment: fixed;
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .26;
+      background-image: radial-gradient(#2388d1 1.2px, transparent 1.2px), radial-gradient(#ef665c 1px, transparent 1px);
+      background-position: 0 0, 20px 24px; background-size: 40px 40px, 54px 54px;
+    }
+    .page-wrap { padding-top: clamp(12px, 3vw, 28px); }
+    .hero {
+      background: linear-gradient(135deg, #15315c 0%, #1767ad 48%, #43b8e5 100%);
+      border: 5px solid #fff; border-radius: 30px; box-shadow: 0 7px 0 #d5e5f3, var(--shadow);
+    }
+    .hero::before { width: 230px; height: 230px; right: -55px; top: -100px; border: 24px solid rgba(255,212,71,.45); }
+    .hero::after { width: 155px; height: 95px; right: 80px; bottom: -70px; border-radius: 80px 80px 0 0; background: rgba(255,255,255,.13); }
+    .hero h1 { letter-spacing: -.035em; text-shadow: 0 4px 0 #0d2547, 0 7px 0 rgba(0,0,0,.12); }
+    .hero h1 span { color: var(--yellow); -webkit-text-stroke: .4px rgba(255,255,255,.45); }
+    .hero p { font-weight: 650; }
+    .sticker { border-radius: 15px; box-shadow: 0 5px 0 rgba(7,26,52,.25); }
+    .status-line { color: #405e7e; font-weight: 700; }
+    .main-nav { background: #174f91; border: 3px solid #fff; border-radius: 18px; box-shadow: 0 5px 0 rgba(20,68,117,.12); }
+    .nav-btn { color: #d9f2ff; }
+    .nav-btn.active { background: var(--yellow); color: #533d00; box-shadow: 0 4px 0 #d2a82a; }
+    .panel { border: 3px solid #fff; background: rgba(255,254,249,.97); box-shadow: 0 5px 0 #e0eaf4, 0 14px 30px rgba(23,70,115,.09); }
+    .panel-head h2 { color: #174f91; text-shadow: 0 2px 0 #e3f3ff; }
+    .pill { background: #e0f5ff; color: #155c91; border: 1px solid #b9e5f8; }
+    .ranking-card { border: 2px solid #d6e6f3; border-radius: 20px; box-shadow: 0 5px 0 #edf2f6; }
+    .ranking-card-head { background: linear-gradient(110deg, #174f91, #2388d1); border-bottom: 4px solid #ffd447; }
+    .ranking-card:nth-child(2) .ranking-card-head { background: linear-gradient(110deg, #d94f50, #f47c62); border-bottom-color: #ffd447; }
+    .rank-row { background: rgba(255,255,255,.92); }
+    .rank-row:nth-child(even) { background: #f5fbff; }
+    .rank-number { border-radius: 10px 14px 10px 14px; }
+    .rank-row.top-1 { background: #fff7d7; }
+    .rank-row.top-2 { background: #f2f8ff; }
+    .rank-row.top-3 { background: #fff0e8; }
+    .score-total { color: #174f91; }
+    .btn { border-radius: 13px; }
+    .btn-primary { background: #ffd447; box-shadow: 0 4px 0 #d5a924; }
+    .btn-blue { background: #174f91; box-shadow: 0 4px 0 #0e2f57; }
+    .btn-quiet { background: #e4f3fb; color: #24547c; }
+    .field input, .field select { border: 2px solid #d4e3ef; }
+    .stage-box { background: linear-gradient(135deg, #f0fbff, #fff7d9); border: 2px dashed #9bcbe3; }
+    .site-footer { color: #57718c; font-weight: 650; }
+    .rank-page-nav { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 9px; padding: 8px; margin: 0 0 20px; background: #e2f4ff; border: 2px solid #fff; border-radius: 17px; box-shadow: 0 4px 0 #d4e6f2; }
+    .rank-page-btn { min-width: 0; border: 2px solid transparent; border-radius: 12px; padding: 12px 10px; background: transparent; color: #3d6486; font-weight: 950; transition: transform .14s, background .14s, box-shadow .14s; }
+    .rank-page-btn:hover { transform: translateY(-1px); background: #f8fdff; }
+    .rank-page-btn.active { background: var(--yellow); color: #513c00; border-color: #fff; box-shadow: 0 4px 0 #d9ad31; }
+    .rank-page-choices { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin-top: 19px; }
+    .rank-choice { display: flex; align-items: center; gap: 12px; width: 100%; min-width: 0; text-align: left; border: 2px solid #fff; border-radius: 18px; padding: 17px; color: #fff; box-shadow: 0 5px 0 rgba(20,65,109,.18); transition: transform .14s, filter .14s; }
+    .rank-choice:hover { transform: translateY(-2px); filter: brightness(1.03); }
+    .solo-choice { background: linear-gradient(130deg, #1d68ac, #48b7e2); }
+    .pair-choice { background: linear-gradient(130deg, #db5557, #fa9763); }
+    .choice-icon { display: grid; place-items: center; flex: 0 0 47px; width: 47px; height: 47px; border-radius: 14px; background: rgba(255,255,255,.2); border: 2px solid rgba(255,255,255,.55); font-size: 1.65rem; }
+    .choice-text { min-width: 0; flex: 1; }
+    .choice-text strong { display: block; line-height: 1.4; font-size: 1rem; }
+    .choice-text small { display: block; line-height: 1.5; margin-top: 4px; color: rgba(255,255,255,.9); font-weight: 650; }
+    .choice-arrow { font-size: 1.45rem; font-weight: 1000; }
+    .page-intro { display: flex; align-items: center; gap: 13px; padding: 17px 19px; margin-bottom: 16px; border: 2px solid #fff; border-radius: 17px; box-shadow: 0 4px 0 rgba(29,87,135,.08); }
+    .solo-intro { background: linear-gradient(100deg, #e1f5ff, #f7fcff); }
+    .pair-intro { background: linear-gradient(100deg, #ffede4, #fff9ed); }
+    .page-intro-icon { display: grid; place-items: center; flex: 0 0 48px; height: 48px; border-radius: 15px; background: #fff; box-shadow: 0 3px 0 rgba(16,49,90,.1); font-size: 1.75rem; }
+    .page-intro h3 { margin: 0; color: #174f91; font-size: 1.12rem; }
+    .page-intro p { margin: 5px 0 0; color: #617792; line-height: 1.65; font-size: .88rem; }
+    #soloRankingFull .ranking-card-head { background: linear-gradient(110deg, #174f91, #2388d1); }
+    #pairRankingFull .ranking-card-head { background: linear-gradient(110deg, #d94f50, #f47c62); }
+    .public-mode .main-nav { display: flex !important; }
+    .public-mode .main-nav #navAdmin { display: none !important; }
+    .public-mode .rank-page-nav { margin-top: 2px; }
+    @media (max-width: 760px) {
+      .rank-page-nav { grid-template-columns: 1fr; gap: 6px; }
+      .rank-page-btn { padding: 12px; }
+      .rank-page-choices { grid-template-columns: 1fr; }
+      .page-intro { align-items: flex-start; padding: 14px; }
+    }
+
+  </style>
+</head>
+<body>
+  <main class="page-wrap">
+    <header class="hero">
+      <div class="eyebrow">✦ TOY ADVENTURE SCORE QUEST · EST. 2026</div>
+      <h1>TOY BOX <span>RANKING</span></h1>
+      <p>おもちゃ箱から冒険へ飛び出そう！<br>ソロもペアも、みんなのスコアが大集合。</p>
+      <div class="hero-scoreboard" role="status" aria-live="polite" aria-label="みんなの得点の合計">
+        <span class="hero-scoreboard-icon" aria-hidden="true">★</span>
+        <div class="hero-scoreboard-copy">
+          <span class="hero-scoreboard-label">みんなの得点</span>
+          <strong id="communityScoreTotal" class="hero-scoreboard-value">—<small>点</small></strong>
+          <span class="hero-scoreboard-note">全員の登録スコアの合計</span>
+        </div>
+      </div>
+      <div class="hero-stickers" aria-hidden="true"><span class="sticker">★</span><span class="sticker">🚀</span><span class="sticker">🧸</span><span class="sticker">🪁</span></div>
+    </header>
+    <div class="status-line" aria-live="polite"><span id="statusDot" class="status-dot offline"></span><span id="connectionStatus">接続情報を確認しています…</span><span id="lastUpdated"></span></div>
+    <div id="configNotice" class="config-notice"><strong>あと少しで接続できます！</strong><br>index.html内の <code>SUPABASE_URL</code>、<code>SUPABASE_PUBLISHABLE_KEY</code>、<code>ADMIN_USER_ID</code> を、READMEの手順に沿って設定してください。秘密鍵（service_role / sb_secret）は入力しないでください。</div>
+
+    <nav class="main-nav" aria-label="メインメニュー">
+      <button class="nav-btn active" id="navRanking" type="button">🏆 ランキングトップ</button>
+      <button class="nav-btn" id="navAdmin" type="button">🧰 管理者メニュー</button>
+    </nav>
+
+    <section id="rankingPanel" class="panel">
+      <div class="panel-head">
+        <div><h2 id="rankPageTitle">🏆 ランキングトップ</h2><p id="rankPageDescription">各部門のトップ10をチェックして、全順位ページへ進もう！</p></div>
+        <div class="button-row"><span class="pill">↻ 自動更新</span><button id="refreshButton" type="button" class="btn btn-quiet btn-small">再読み込み</button></div>
+      </div>
+      <nav class="rank-page-nav" aria-label="ランキングページ">
+        <button type="button" class="rank-page-btn active" data-rank-page="ranking">🏆 ランキングトップ</button>
+        <button type="button" class="rank-page-btn" data-rank-page="solo">⭐ ソロ全順位</button>
+        <button type="button" class="rank-page-btn" data-rank-page="pair">🤝 ペア全順位</button>
+      </nav>
+      <div id="rankingTopContent">
+        <div id="rankingGrid" class="ranking-grid">
+          <div class="ranking-card"><div class="ranking-card-head"><h3>⭐ ソロ部門</h3><small>TOP 10</small></div><div class="empty-state"><span class="emoji">🧸</span>データを読み込んでいます…</div></div>
+          <div class="ranking-card"><div class="ranking-card-head"><h3>🤝 ペア部門</h3><small>TOP 10</small></div><div class="empty-state"><span class="emoji">🧩</span>データを読み込んでいます…</div></div>
+        </div>
+        <div class="rank-page-choices">
+          <button type="button" class="rank-choice solo-choice" data-rank-page="solo"><span class="choice-icon">⭐</span><span class="choice-text"><strong>ソロランキングを全部見る</strong><small>ソロ参加者と、ペア参加者それぞれの個人得点を全順位で表示</small></span><span class="choice-arrow">➜</span></button>
+          <button type="button" class="rank-choice pair-choice" data-rank-page="pair"><span class="choice-icon">🤝</span><span class="choice-text"><strong>ペアランキングを全部見る</strong><small>ペア全組を合計点の高い順に表示</small></span><span class="choice-arrow">➜</span></button>
+        </div>
+      </div>
+      <div id="soloRankingContent" class="hidden">
+        <div class="page-intro solo-intro"><span class="page-intro-icon">⭐</span><div><h3>ソロランキング・全順位</h3><p>ソロ参加者に加えて、ペアで参加した各プレイヤーも個人得点でランクインします。</p></div></div>
+        <div id="soloRankingFull"></div>
+      </div>
+      <div id="pairRankingContent" class="hidden">
+        <div class="page-intro pair-intro"><span class="page-intro-icon">🤝</span><div><h3>ペアランキング・全順位</h3><p>各ペアの2人分の点数を合計して、全組を表示します。</p></div></div>
+        <div id="pairRankingFull"></div>
+      </div>
+      <div id="rankingMessage" class="message" role="status"></div>
+    </section>
+
+    <section id="adminPanel" class="panel hidden" style="margin-top:18px">
+      <div class="panel-head"><div><h2>🧰 管理者メニュー</h2><p>管理者アカウントでログインすると、点数の登録・修正・削除ができます。</p></div><button type="button" id="qrOpenButton" class="btn btn-quiet btn-small qr-launch">▦ 公開用QRコード</button></div>
+      <div id="loginBox" class="login-box">
+        <h3>管理者ログイン</h3><p>Supabaseの「Authentication → Users」で作成した管理者アカウントを使用してください。</p>
+        <form id="loginForm">
+          <div class="field"><label for="loginEmail">メールアドレス</label><input id="loginEmail" type="email" autocomplete="username" required placeholder="admin@example.com"></div>
+          <div class="field"><label for="loginPassword">パスワード</label><input id="loginPassword" type="password" autocomplete="current-password" required placeholder="パスワード"></div>
+          <button type="submit" class="btn btn-blue" style="width:100%">ログイン</button>
+        </form>
+        <div id="loginMessage" class="message" role="status"></div>
+      </div>
+      <div id="notAdminBox" class="message error"></div>
+      <div id="adminWorkspace" class="hidden">
+        <div class="button-row" style="justify-content:space-between; margin:4px 0 18px"><span class="pill">✓ 管理者としてログイン中</span><button type="button" id="logoutButton" class="btn btn-quiet btn-small">ログアウト</button></div>
+        <form id="scoreForm">
+          <div class="panel-head" style="margin-bottom:14px"><div><h2 id="formHeading" style="font-size:1.25rem">点数を登録</h2><p>点数は整数で入力してください。未入力のステージは0点です。</p></div><span id="editBadge" class="pill hidden">編集中</span></div>
+          <div class="form-grid">
+            <div class="field"><label for="playMode">参加形式</label><select id="playMode" name="playMode"><option value="solo">ソロ</option><option value="pair">ペア</option></select></div>
+            <div class="field"><label for="player1Name">参加者名（1人目）</label><input id="player1Name" name="player1Name" type="text" maxlength="80" required placeholder="例：はるか"></div>
+          </div>
+          <div id="p1Stages" class="stage-box"><h3>🎯 1人目のステージ点数</h3><div id="p1StageGrid" class="stage-grid"></div></div>
+          <div id="pairSection" class="pair-section">
+            <div class="pair-title">🤝 2人目の情報</div>
+            <div class="field"><label for="player2Name">参加者名（2人目）</label><input id="player2Name" name="player2Name" type="text" maxlength="80" placeholder="例：ゆうと"></div>
+            <div class="stage-box"><h3>🎯 2人目のステージ点数</h3><div id="p2StageGrid" class="stage-grid"></div></div>
+          </div>
+          <div class="button-row"><button id="saveButton" type="submit" class="btn btn-primary">★ 点数を登録</button><button id="cancelEditButton" type="button" class="btn btn-quiet hidden">編集をキャンセル</button><button id="resetFormButton" type="button" class="btn btn-quiet">入力をリセット</button></div>
+          <div id="saveMessage" class="message" role="status"></div>
+        </form>
+        <hr class="admin-divider">
+        <div class="admin-toolbar"><h3>🗂 登録済みデータ</h3><span id="entryCount" class="pill">0件</span></div>
+        <div class="entry-table-wrap"><table><thead><tr><th>形式</th><th>参加者</th><th>合計点</th><th>操作</th></tr></thead><tbody id="entriesTable"><tr><td colspan="4" class="empty-state">データを読み込んでいます…</td></tr></tbody></table></div>
+      </div>
+    </section>
+    <footer class="site-footer">TOY ADVENTURE RANKING · オリジナルのおもちゃ箱アドベンチャーデザイン<br>ランキングは共有データです。参加者名と点数は公開されるため、個人情報は入力しないでください。</footer>
+  </main>
+
+  <div id="qrModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+    <div class="modal"><h2 id="qrTitle">公開ランキングのQRコード</h2><p>このQRコードを読み取ると、ランキングだけを表示するページが開きます。</p><div id="qrcode"></div><input id="rankingUrl" readonly aria-label="ランキングURL" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;font-size:.8rem"><div class="button-row" style="justify-content:center;margin-top:14px"><button type="button" id="copyUrlButton" class="btn btn-blue">URLをコピー</button><button type="button" id="qrCloseButton" class="btn btn-quiet">閉じる</button></div><div id="qrMessage" class="message" role="status"></div></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    // ====== 最初にこの3項目を自分のSupabaseプロジェクトの情報に置き換えてください ======
+    const SUPABASE_URL = "https://lofjexyvwnirsmblvchv.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable__L2F1R2kVihH7Qd5QDiGVA_SeZW9FE1";
+    const ADMIN_USER_ID = "8e521ac8-a985-492a-9b12-dac989fe94e9";
+    // ================================================================================
+
+    const STAGES = 6;
+    const $ = (id) => document.getElementById(id);
+    const isConfigured = () => /^https:\/\/.+\.supabase\.co\/?$/.test(SUPABASE_URL) &&
+      SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_") &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(ADMIN_USER_ID);
+    let db = null;
+    let allEntries = [];
+    let scoresLoaded = false;
+    let currentUser = null;
+    let editingId = null;
+    const initialView = new URLSearchParams(location.search).get("view");
+    const initialHashView = location.hash.replace(/^#/, "");
+    // URLの基本形（/ranking/）は公開閲覧用。?view=ranking を付けたURLでは管理者メニューを表示する。
+    // view=solo / view=pair は旧URLとの互換性のため、ランキングページ指定として引き続き扱う。
+    let currentRankPage = ["ranking", "solo", "pair"].includes(initialHashView)
+      ? initialHashView
+      : (["solo", "pair"].includes(initialView) ? initialView : "ranking");
+    const isAdminRoute = initialView === "ranking" || /\/viewranking\/?$/i.test(location.pathname);
+    let publicView = !isAdminRoute;
+    let refreshTimer = null;
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (ch) => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}[ch]));
+    }
+    function showMessage(el, message, kind = "info") {
+      el.textContent = message;
+      el.className = `message show ${kind}`;
+    }
+    function hideMessage(el) { el.textContent = ""; el.className = "message"; }
+    function setConnection(online, text) {
+      $("statusDot").classList.toggle("offline", !online);
+      $("connectionStatus").textContent = text;
+    }
+    function buildStageFields() {
+      [1, 2].forEach((person) => {
+        const host = $(`p${person}StageGrid`);
+        host.innerHTML = "";
+        for (let i = 1; i <= STAGES; i++) {
+          const label = document.createElement("label");
+          label.className = "field";
+          label.innerHTML = `<span>ステージ${i}</span><input type="number" inputmode="numeric" min="-9999999999" max="9999999999" step="1" name="p${person}_stage${i}" value="0" aria-label="${person}人目 ステージ${i}の点数">`;
+          host.appendChild(label);
+        }
+      });
+    }
+    function personTotalScore(row, person = 1) {
+      let total = 0;
+      for (let i = 1; i <= STAGES; i++) total += Number(row[`p${person}_stage${i}`] || 0);
+      return total;
+    }
+    function totalScore(row) {
+      return personTotalScore(row, 1) + (row.play_mode === "pair" ? personTotalScore(row, 2) : 0);
+    }
+    function formatScore(value) { return Number(value || 0).toLocaleString("ja-JP"); }
+    function sortEntries(entries) {
+      return [...entries].sort((a, b) => totalScore(b) - totalScore(a) || new Date(a.created_at || 0) - new Date(b.created_at || 0));
+    }
+    function namesFor(row) {
+      return row.play_mode === "pair" ? `${row.player1_name} ＆ ${row.player2_name}` : row.player1_name;
+    }
+    // ソロランキングには、ソロ登録者に加えて、ペア登録された各プレイヤーも個人得点で参加させる。
+    function soloRankingEntries() {
+      const entries = [];
+      for (const row of allEntries) {
+        if (row.play_mode === "solo") {
+          entries.push({
+            rankingName: row.player1_name,
+            rankingScore: personTotalScore(row, 1),
+            rankingSourceMode: "solo",
+            created_at: row.created_at,
+            personOrder: 0
+          });
+        } else if (row.play_mode === "pair") {
+          entries.push({
+            rankingName: row.player1_name,
+            rankingScore: personTotalScore(row, 1),
+            rankingSourceMode: "pair",
+            created_at: row.created_at,
+            personOrder: 0
+          });
+          entries.push({
+            rankingName: row.player2_name,
+            rankingScore: personTotalScore(row, 2),
+            rankingSourceMode: "pair",
+            created_at: row.created_at,
+            personOrder: 1
+          });
+        }
+      }
+      return entries.sort((a, b) => b.rankingScore - a.rankingScore || new Date(a.created_at || 0) - new Date(b.created_at || 0) || a.personOrder - b.personOrder);
+    }
+    function rankingRowsFor(mode) {
+      return mode === "solo"
+        ? soloRankingEntries()
+        : sortEntries(allEntries.filter((entry) => entry.play_mode === "pair"));
+    }
+    function renderRankCard(mode, title, icon, limit = null) {
+      const allRows = rankingRowsFor(mode);
+      const rows = Number.isInteger(limit) ? allRows.slice(0, limit) : allRows;
+      const countLabel = Number.isInteger(limit) ? `TOP ${limit}` : (mode === "solo" ? `${allRows.length}人` : `${allRows.length}組`);
+      const list = rows.length ? `<ol class="ranking-list">${rows.map((row, index) => {
+        const competitorName = mode === "solo" ? row.rankingName : namesFor(row);
+        const score = mode === "solo" ? row.rankingScore : totalScore(row);
+        const subtitle = mode === "solo"
+          ? (row.rankingSourceMode === "pair" ? "ペア参加・個人得点" : "ソロ参加")
+          : "ペア参加・2人の合計点";
+        return `<li class="rank-row ${index < 3 ? `top-${index + 1}` : ""}"><span class="rank-number">${index + 1}</span><span class="competitor"><span class="competitor-name">${escapeHTML(competitorName)}</span><span class="competitor-sub">${subtitle}</span></span><span class="score-total">${formatScore(score)}<small>合計点</small></span></li>`;
+      }).join("")}</ol>` : `<div class="empty-state"><span class="emoji">${mode === "solo" ? "🧸" : "🧩"}</span>まだ登録データがありません。<br>ランキングにスコアが登録されると、ここに表示されます。</div>`;
+      return `<section class="ranking-card"><div class="ranking-card-head"><h3>${icon} ${title}</h3><small>${countLabel}</small></div>${list}</section>`;
+    }
+    function navigateRankPage(page, updateUrl = true) {
+      if (!["ranking", "solo", "pair"].includes(page)) page = "ranking";
+      currentRankPage = page;
+      if (updateUrl) {
+        const url = new URL(location.href);
+        // ランキングページはハッシュで指定し、管理者用の ?view=ranking と混同しないようにする。
+        url.hash = page;
+        history.pushState({ rankPage: page }, "", url);
+      }
+      switchPanel("ranking");
+      renderRanking();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function updateCommunityScoreTotal() {
+      const target = $("communityScoreTotal");
+      if (!target) return;
+      if (!scoresLoaded) {
+        target.innerHTML = '—<small>点</small>';
+        return;
+      }
+      // ソロ登録は1人分、ペア登録は2人分の点数を足し合わせ、登録済みスコア全体の合計を表示する。
+      const overallTotal = allEntries.reduce((sum, row) => sum + totalScore(row), 0);
+      target.innerHTML = `${formatScore(overallTotal)}<small>点</small>`;
+    }
+    function renderRanking() {
+      updateCommunityScoreTotal();
+      const topView = currentRankPage === "ranking";
+      const soloView = currentRankPage === "solo";
+      const pairView = currentRankPage === "pair";
+      $("rankPageTitle").textContent = topView ? "🏆 ランキングトップ" : soloView ? "⭐ ソロランキング・全順位" : "🤝 ペアランキング・全順位";
+      $("rankPageDescription").textContent = topView
+        ? "各部門のトップ10をチェックして、全順位ページへ進もう！"
+        : soloView
+          ? "ソロ参加者とペア参加者の個人得点を、すべて順位順に表示します。"
+          : "ペア全組を、2人の合計点が高い順に表示します。";
+      $("rankingTopContent").classList.toggle("hidden", !topView);
+      $("soloRankingContent").classList.toggle("hidden", !soloView);
+      $("pairRankingContent").classList.toggle("hidden", !pairView);
+      document.querySelectorAll("[data-rank-page]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.rankPage === currentRankPage);
+        if (button.classList.contains("rank-page-btn")) button.setAttribute("aria-current", button.dataset.rankPage === currentRankPage ? "page" : "false");
+      });
+      if (topView) {
+        $("rankingGrid").innerHTML = renderRankCard("solo", "ソロ部門", "⭐", 10) + renderRankCard("pair", "ペア部門", "🤝", 10);
+      } else if (soloView) {
+        $("soloRankingFull").innerHTML = renderRankCard("solo", "ソロ部門・全順位", "⭐");
+      } else {
+        $("pairRankingFull").innerHTML = renderRankCard("pair", "ペア部門・全順位", "🤝");
+      }
+    }
+    function renderEntriesTable() {
+      const rows = sortEntries(allEntries);
+      $("entryCount").textContent = `${rows.length}件`;
+      if (!rows.length) {
+        $("entriesTable").innerHTML = '<tr><td colspan="4" class="empty-state">まだ登録データがありません。</td></tr>';
+        return;
+      }
+      $("entriesTable").innerHTML = rows.map((row) => `<tr><td><span class="mode-chip ${row.play_mode === "pair" ? "pair" : ""}">${row.play_mode === "pair" ? "ペア" : "ソロ"}</span></td><td>${escapeHTML(namesFor(row))}</td><td><strong>${formatScore(totalScore(row))}</strong> 点</td><td><div class="table-actions"><button type="button" class="btn btn-quiet btn-small" data-edit="${escapeHTML(row.id)}">編集</button><button type="button" class="btn btn-danger btn-small" data-delete="${escapeHTML(row.id)}">削除</button></div></td></tr>`).join("");
+    }
+    async function loadScores(showErrors = false) {
+      if (!db) return;
+      try {
+        const { data, error } = await db.from("score_entries").select("*").order("created_at", { ascending: true });
+        if (error) throw error;
+        allEntries = data || [];
+        scoresLoaded = true;
+        renderRanking();
+        if (currentUser && currentUser.id === ADMIN_USER_ID) renderEntriesTable();
+        const time = new Date();
+        $("lastUpdated").textContent = `最終更新 ${time.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}`;
+        setConnection(true, "Supabaseに接続済み");
+        hideMessage($("rankingMessage"));
+      } catch (error) {
+        setConnection(false, "データの読み込みに失敗");
+        if (showErrors) showMessage($("rankingMessage"), `読み込みに失敗しました：${error.message}。テーブル名・RLS・権限設定を確認してください。`, "error");
+      }
+    }
+    function switchPanel(panelName) {
+      const isRank = panelName === "ranking";
+      $("rankingPanel").classList.toggle("hidden", !isRank);
+      $("adminPanel").classList.toggle("hidden", isRank);
+      $("navRanking").classList.toggle("active", isRank);
+      $("navAdmin").classList.toggle("active", !isRank);
+    }
+    function syncModeFields() {
+      const pair = $("playMode").value === "pair";
+      $("pairSection").classList.toggle("show", pair);
+      $("player2Name").required = pair;
+      if (!pair) $("player2Name").value = "";
+    }
+    function resetScoreForm() {
+      editingId = null;
+      $("scoreForm").reset();
+      $("scoreForm").querySelectorAll('input[type="number"]').forEach((input) => input.value = "0");
+      $("playMode").value = "solo";
+      syncModeFields();
+      $("formHeading").textContent = "点数を登録";
+      $("saveButton").textContent = "★ 点数を登録";
+      $("editBadge").classList.add("hidden");
+      $("cancelEditButton").classList.add("hidden");
+      hideMessage($("saveMessage"));
+    }
+    function startEdit(id) {
+      const row = allEntries.find((item) => item.id === id);
+      if (!row) return;
+      editingId = id;
+      $("playMode").value = row.play_mode;
+      $("player1Name").value = row.player1_name || "";
+      $("player2Name").value = row.player2_name || "";
+      for (let i = 1; i <= STAGES; i++) {
+        $("scoreForm").elements[`p1_stage${i}`].value = row[`p1_stage${i}`] ?? 0;
+        $("scoreForm").elements[`p2_stage${i}`].value = row[`p2_stage${i}`] ?? 0;
+      }
+      syncModeFields();
+      $("formHeading").textContent = "点数を修正";
+      $("saveButton").textContent = "✓ 変更を保存";
+      $("editBadge").classList.remove("hidden");
+      $("cancelEditButton").classList.remove("hidden");
+      hideMessage($("saveMessage"));
+      $("scoreForm").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    function makePayload() {
+      const mode = $("playMode").value;
+      const p1 = $("player1Name").value.trim();
+      const p2 = $("player2Name").value.trim();
+      if (!p1) throw new Error("1人目の参加者名を入力してください。");
+      if (mode === "pair" && !p2) throw new Error("ペアの2人目の参加者名を入力してください。");
+      const payload = { play_mode: mode, player1_name: p1, player2_name: mode === "pair" ? p2 : "" };
+      for (let i = 1; i <= STAGES; i++) {
+        const v1 = $("scoreForm").elements[`p1_stage${i}`].value;
+        const v2 = $("scoreForm").elements[`p2_stage${i}`].value;
+        const score1 = Number(v1);
+        const score2 = Number(v2 || 0);
+        const minScore = -9999999999;
+        const maxScore = 9999999999;
+        if (v1.trim() === "" || !Number.isSafeInteger(score1) || score1 < minScore || score1 > maxScore) {
+          throw new Error(`1人目のステージ${i}は-9,999,999,999〜9,999,999,999の整数で入力してください。`);
+        }
+        if (mode === "pair" && (v2.trim() === "" || !Number.isSafeInteger(score2) || score2 < minScore || score2 > maxScore)) {
+          throw new Error(`2人目のステージ${i}は-9,999,999,999〜9,999,999,999の整数で入力してください。`);
+        }
+        payload[`p1_stage${i}`] = score1;
+        payload[`p2_stage${i}`] = mode === "pair" ? score2 : 0;
+      }
+      return payload;
+    }
+    async function handleScoreSubmit(event) {
+      event.preventDefault();
+      hideMessage($("saveMessage"));
+      if (!currentUser || currentUser.id !== ADMIN_USER_ID) {
+        showMessage($("saveMessage"), "この操作には設定済みの管理者アカウントでのログインが必要です。", "error");
+        return;
+      }
+      let payload;
+      try { payload = makePayload(); } catch (error) { showMessage($("saveMessage"), error.message, "error"); return; }
+      const saveButton = $("saveButton");
+      saveButton.disabled = true;
+      saveButton.textContent = "保存中…";
+      try {
+        const result = editingId
+          ? await db.from("score_entries").update(payload).eq("id", editingId)
+          : await db.from("score_entries").insert(payload);
+        if (result.error) throw result.error;
+        const successText = editingId ? "変更を保存しました！" : "点数を登録しました！";
+        resetScoreForm();
+        showMessage($("saveMessage"), successText, "success");
+        await loadScores(true);
+      } catch (error) {
+        showMessage($("saveMessage"), `保存できませんでした：${error.message}。User IDとRLSポリシーを確認してください。`, "error");
+      } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = editingId ? "✓ 変更を保存" : "★ 点数を登録";
+      }
+    }
+    async function deleteEntry(id) {
+      const row = allEntries.find((item) => item.id === id);
+      if (!row) return;
+      if (!confirm(`「${namesFor(row)}」の点数データを削除しますか？\nこの操作は取り消せません。`)) return;
+      try {
+        const { error } = await db.from("score_entries").delete().eq("id", id);
+        if (error) throw error;
+        await loadScores(true);
+      } catch (error) {
+        alert(`削除できませんでした：${error.message}\n管理者のUser IDとRLSポリシーを確認してください。`);
+      }
+    }
+    function showLoginState(sessionUser) {
+      currentUser = sessionUser || null;
+      const loggedIn = Boolean(currentUser);
+      const isAdmin = loggedIn && currentUser.id === ADMIN_USER_ID;
+      $("loginBox").classList.toggle("hidden", loggedIn);
+      $("adminWorkspace").classList.toggle("hidden", !isAdmin);
+      $("notAdminBox").classList.toggle("show", loggedIn && !isAdmin);
+      if (loggedIn && !isAdmin) {
+        $("notAdminBox").replaceChildren();
+        const note = document.createElement("span");
+        note.textContent = "このアカウントは管理者として登録されていません。管理者のUser ID設定を確認してください。 ";
+        const logout = document.createElement("button");
+        logout.type = "button";
+        logout.className = "btn btn-quiet btn-small";
+        logout.textContent = "このアカウントからログアウト";
+        logout.addEventListener("click", handleLogout);
+        $("notAdminBox").append(note, logout);
+        $("notAdminBox").classList.add("error");
+      } else {
+        $("notAdminBox").replaceChildren();
+      }
+      if (isAdmin) renderEntriesTable();
+    }
+    async function handleLogin(event) {
+      event.preventDefault();
+      hideMessage($("loginMessage"));
+      const email = $("loginEmail").value.trim();
+      const password = $("loginPassword").value;
+      const button = $("loginForm").querySelector('button[type="submit"]');
+      button.disabled = true;
+      button.textContent = "ログイン中…";
+      try {
+        const { data, error } = await db.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        showLoginState(data.user);
+        if (data.user && data.user.id !== ADMIN_USER_ID) {
+          showMessage($("loginMessage"), "ログインはできましたが、このUser IDには管理権限がありません。", "error");
+        } else {
+          showMessage($("loginMessage"), "ログインしました。", "success");
+          await loadScores(true);
+        }
+      } catch (error) {
+        showMessage($("loginMessage"), `ログインできませんでした：${error.message}`, "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = "ログイン";
+      }
+    }
+    async function handleLogout() {
+      if (!db) return;
+      const { error } = await db.auth.signOut();
+      if (error) alert(`ログアウトに失敗しました：${error.message}`);
+      showLoginState(null);
+    }
+    function rankingShareUrl() {
+      const url = new URL(location.href);
+      // QRコードは常に公開用の基本URLにする。管理者用 ?view=ranking は共有しない。
+      url.pathname = url.pathname.replace(/viewranking\/?$/i, "");
+      if (!url.pathname.endsWith("/")) url.pathname += "/";
+      url.search = "";
+      url.hash = "ranking";
+      return url.href;
+    }
+    function openQrModal() {
+      if (location.protocol === "file:" || location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+        alert("先にGitHub Pagesへ公開してください。公開後のURLでこのQRコードを作成できます。");
+        return;
+      }
+      const shareUrl = rankingShareUrl();
+      $("rankingUrl").value = shareUrl;
+      $("qrcode").innerHTML = "";
+      hideMessage($("qrMessage"));
+      $("qrModal").classList.add("show");
+      if (window.QRCode) new QRCode($("qrcode"), { text: shareUrl, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
+      else showMessage($("qrMessage"), "QRコードライブラリを読み込めませんでした。URLをコピーしてQRコード作成に利用してください。", "error");
+    }
+    function init() {
+      buildStageFields();
+      syncModeFields();
+      if (publicView) {
+        document.body.classList.add("public-mode");
+        switchPanel("ranking");
+      }
+      $("navRanking").addEventListener("click", () => navigateRankPage("ranking"));
+      $("navAdmin").addEventListener("click", () => switchPanel("admin"));
+      document.querySelectorAll("[data-rank-page]").forEach((button) => {
+        button.addEventListener("click", () => navigateRankPage(button.dataset.rankPage));
+      });
+      window.addEventListener("popstate", () => {
+        const hashView = location.hash.replace(/^#/, "");
+        const queryView = new URLSearchParams(location.search).get("view");
+        currentRankPage = ["ranking", "solo", "pair"].includes(hashView)
+          ? hashView
+          : (["solo", "pair"].includes(queryView) ? queryView : "ranking");
+        switchPanel("ranking");
+        renderRanking();
+      });
+      $("refreshButton").addEventListener("click", () => loadScores(true));
+      $("playMode").addEventListener("change", syncModeFields);
+      $("scoreForm").addEventListener("submit", handleScoreSubmit);
+      $("cancelEditButton").addEventListener("click", resetScoreForm);
+      $("resetFormButton").addEventListener("click", resetScoreForm);
+      $("loginForm").addEventListener("submit", handleLogin);
+      $("logoutButton").addEventListener("click", handleLogout);
+      $("entriesTable").addEventListener("click", (event) => {
+        const editButton = event.target.closest("[data-edit]");
+        const deleteButton = event.target.closest("[data-delete]");
+        if (editButton) startEdit(editButton.dataset.edit);
+        if (deleteButton) deleteEntry(deleteButton.dataset.delete);
+      });
+      $("qrOpenButton").addEventListener("click", openQrModal);
+      $("qrCloseButton").addEventListener("click", () => $("qrModal").classList.remove("show"));
+      $("qrModal").addEventListener("click", (event) => { if (event.target === $("qrModal")) $("qrModal").classList.remove("show"); });
+      $("copyUrlButton").addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText($("rankingUrl").value); showMessage($("qrMessage"), "URLをコピーしました！", "success"); }
+        catch { $("rankingUrl").select(); showMessage($("qrMessage"), "URLを選択しました。Ctrl+C（Macは⌘+C）でコピーしてください。", "info"); }
+      });
+
+      if (!isConfigured()) {
+        $("configNotice").classList.add("show");
+        setConnection(false, "Supabase接続前：設定が必要です");
+        renderRanking();
+        return;
+      }
+      if (!window.supabase || !window.supabase.createClient) {
+        setConnection(false, "接続ライブラリの読み込みに失敗");
+        showMessage($("rankingMessage"), "Supabaseのライブラリを読み込めません。インターネット接続を確認してください。", "error");
+        return;
+      }
+      db = window.supabase.createClient(SUPABASE_URL.replace(/\/$/, ""), SUPABASE_PUBLISHABLE_KEY);
+      db.auth.onAuthStateChange((_event, session) => {
+        showLoginState(session?.user || null);
+      });
+      db.auth.getSession().then(({ data }) => showLoginState(data.session?.user || null));
+      loadScores(true);
+      refreshTimer = setInterval(() => { if (!document.hidden) loadScores(false); }, 20000);
+    }
+    init();
+  </script>
+</body>
+</html>
