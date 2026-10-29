@@ -7,6 +7,13 @@
   <meta name="description" content="イベントのソロ・ペアランキングとステージ別スコアを管理するWebアプリ">
   <title>TOY BOX RANKING</title>
   <style>
+    @font-face {
+      font-family: "Keifont";
+      src: url("../fonts/keifont.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
     :root {
       --navy: #173456;
       --navy-deep: #0d223b;
@@ -27,7 +34,7 @@
     html { scroll-behavior: smooth; }
     body {
       margin: 0; min-height: 100vh; color: var(--ink);
-      font-family: ui-rounded, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
+      font-family: "Keifont", ui-rounded, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
       background: radial-gradient(circle at 12% 5%, rgba(255,207,72,.25), transparent 24rem),
                   radial-gradient(circle at 90% 20%, rgba(104,200,235,.22), transparent 26rem),
                   var(--cream);
