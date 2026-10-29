@@ -573,7 +573,7 @@
         if (currentUser && currentUser.id === ADMIN_USER_ID) renderEntriesTable();
         const time = new Date();
         $("lastUpdated").textContent = `最終更新 ${time.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}`;
-        setConnection(true, "Supabaseに接続済み");
+        setConnection(true, "ランキング更新可能");
         hideMessage($("rankingMessage"));
       } catch (error) {
         setConnection(false, "データの読み込みに失敗");
