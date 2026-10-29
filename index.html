@@ -48,6 +48,24 @@
     .hero h1 { position: relative; margin: 12px 0 8px; font-size: clamp(2rem, 6vw, 3.6rem); line-height: 1; letter-spacing: -.04em; text-shadow: 0 4px 0 rgba(0,0,0,.18); }
     .hero h1 span { color: var(--yellow); }
     .hero p { position: relative; margin: 14px 0 0; max-width: 620px; line-height: 1.8; color: #e0eef7; }
+    .hero-scoreboard {
+      position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 12px;
+      max-width: 100%; margin-top: 19px; padding: 12px 17px 12px 13px;
+      border: 2px solid rgba(255,255,255,.78); border-radius: 17px;
+      background: linear-gradient(135deg, rgba(255,255,255,.19), rgba(255,255,255,.09));
+      box-shadow: 0 5px 0 rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.18);
+      backdrop-filter: blur(3px);
+    }
+    .hero-scoreboard-icon {
+      display: grid; place-items: center; flex: 0 0 43px; height: 43px; border-radius: 13px;
+      background: var(--yellow); color: #5f4200; border: 2px solid rgba(255,255,255,.88);
+      box-shadow: 0 3px 0 #d6a52a; font-size: 1.4rem;
+    }
+    .hero-scoreboard-copy { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .hero-scoreboard-label { color: var(--yellow); font-size: .82rem; font-weight: 1000; letter-spacing: .04em; }
+    .hero-scoreboard-value { display: flex; align-items: baseline; gap: 5px; font-size: clamp(1.45rem, 4vw, 2.05rem); line-height: 1.15; font-weight: 1000; font-variant-numeric: tabular-nums; color: #fff; text-shadow: 0 3px 0 rgba(0,0,0,.16); overflow-wrap: anywhere; }
+    .hero-scoreboard-value small { font-size: .78rem; font-weight: 900; color: #e0eef7; text-shadow: none; }
+    .hero-scoreboard-note { color: #d4e8f5; font-size: .7rem; line-height: 1.35; }
     .hero-stickers { position: absolute; right: 32px; bottom: 24px; display: flex; gap: 9px; transform: rotate(-5deg); }
     .sticker { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; color: var(--navy); font-size: 1.35rem; box-shadow: 0 4px 0 rgba(0,0,0,.15); border: 2px solid white; }
     .sticker:nth-child(1) { background: var(--yellow); transform: rotate(-9deg); }
@@ -147,6 +165,9 @@
       .hero-stickers { right: 16px; top: 18px; bottom: auto; transform: scale(.82) rotate(-5deg); transform-origin: top right; }
       .hero h1 { max-width: 75%; }
       .hero p { max-width: 100%; }
+      .hero-scoreboard { margin-top: 16px; padding: 10px 13px 10px 10px; }
+      .hero-scoreboard-icon { flex-basis: 38px; height: 38px; border-radius: 11px; }
+      .hero-scoreboard-value { font-size: clamp(1.3rem, 6vw, 1.8rem); }
       .ranking-grid { grid-template-columns: 1fr; }
       .form-grid { grid-template-columns: 1fr; }
       .stage-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
@@ -265,20 +286,28 @@
     <header class="hero">
       <div class="eyebrow">✦ TOY ADVENTURE SCORE QUEST · EST. 2026</div>
       <h1>TOY BOX <span>RANKING</span></h1>
-      <p>あなたのスコアがここに記録されています。<br>1人とペアのそれぞれでランキングがあります</p>
+      <p>おもちゃ箱から冒険へ飛び出そう！<br>ソロもペアも、みんなのスコアが大集合。</p>
+      <div class="hero-scoreboard" role="status" aria-live="polite" aria-label="みんなの得点の合計">
+        <span class="hero-scoreboard-icon" aria-hidden="true">★</span>
+        <div class="hero-scoreboard-copy">
+          <span class="hero-scoreboard-label">みんなの得点</span>
+          <strong id="communityScoreTotal" class="hero-scoreboard-value">—<small>点</small></strong>
+          <span class="hero-scoreboard-note">全員の登録スコアの合計</span>
+        </div>
+      </div>
       <div class="hero-stickers" aria-hidden="true"><span class="sticker">★</span><span class="sticker">🚀</span><span class="sticker">🧸</span><span class="sticker">🪁</span></div>
     </header>
     <div class="status-line" aria-live="polite"><span id="statusDot" class="status-dot offline"></span><span id="connectionStatus">接続情報を確認しています…</span><span id="lastUpdated"></span></div>
     <div id="configNotice" class="config-notice"><strong>あと少しで接続できます！</strong><br>index.html内の <code>SUPABASE_URL</code>、<code>SUPABASE_PUBLISHABLE_KEY</code>、<code>ADMIN_USER_ID</code> を、READMEの手順に沿って設定してください。秘密鍵（service_role / sb_secret）は入力しないでください。</div>
 
     <nav class="main-nav" aria-label="メインメニュー">
-      <button class="nav-btn active" id="navRanking" type="button">🏆 ランキング</button>
+      <button class="nav-btn active" id="navRanking" type="button">🏆 ランキングトップ</button>
       <button class="nav-btn" id="navAdmin" type="button">🧰 管理者メニュー</button>
     </nav>
 
     <section id="rankingPanel" class="panel">
       <div class="panel-head">
-        <div><h2 id="rankPageTitle">🏆 ランキングトップ</h2><p id="rankPageDescription">自動で更新されない場合は、再読み込みボタンを押してください。</p></div>
+        <div><h2 id="rankPageTitle">🏆 ランキングトップ</h2><p id="rankPageDescription">各部門のトップ10をチェックして、全順位ページへ進もう！</p></div>
         <div class="button-row"><span class="pill">↻ 自動更新</span><button id="refreshButton" type="button" class="btn btn-quiet btn-small">再読み込み</button></div>
       </div>
       <nav class="rank-page-nav" aria-label="ランキングページ">
@@ -341,7 +370,7 @@
         <div class="entry-table-wrap"><table><thead><tr><th>形式</th><th>参加者</th><th>合計点</th><th>操作</th></tr></thead><tbody id="entriesTable"><tr><td colspan="4" class="empty-state">データを読み込んでいます…</td></tr></tbody></table></div>
       </div>
     </section>
-    <footer class="site-footer">TOY ADVENTURE RANKING · 表示されない場合はページの再読み込みをお試しください。<br>ランキングは共有データです。参加者名と点数は公開されるため、個人情報は入力しないでください。</footer>
+    <footer class="site-footer">TOY ADVENTURE RANKING · オリジナルのおもちゃ箱アドベンチャーデザイン<br>ランキングは共有データです。参加者名と点数は公開されるため、個人情報は入力しないでください。</footer>
   </main>
 
   <div id="qrModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
@@ -364,11 +393,18 @@
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(ADMIN_USER_ID);
     let db = null;
     let allEntries = [];
+    let scoresLoaded = false;
     let currentUser = null;
     let editingId = null;
     const initialView = new URLSearchParams(location.search).get("view");
-    let currentRankPage = ["ranking", "solo", "pair"].includes(initialView) ? initialView : "ranking";
-    let publicView = ["ranking", "solo", "pair"].includes(initialView);
+    const initialHashView = location.hash.replace(/^#/, "");
+    // URLの基本形（/ranking/）は公開閲覧用。?view=ranking を付けたURLでは管理者メニューを表示する。
+    // view=solo / view=pair は旧URLとの互換性のため、ランキングページ指定として引き続き扱う。
+    let currentRankPage = ["ranking", "solo", "pair"].includes(initialHashView)
+      ? initialHashView
+      : (["solo", "pair"].includes(initialView) ? initialView : "ranking");
+    const isAdminRoute = initialView === "ranking" || /\/viewranking\/?$/i.test(location.pathname);
+    let publicView = !isAdminRoute;
     let refreshTimer = null;
 
     function escapeHTML(value) {
@@ -390,7 +426,7 @@
         for (let i = 1; i <= STAGES; i++) {
           const label = document.createElement("label");
           label.className = "field";
-          label.innerHTML = `<span>ステージ${i}</span><input type="number" inputmode="numeric" min="-999999" max="999999" step="1" name="p${person}_stage${i}" value="0" aria-label="${person}人目 ステージ${i}の点数">`;
+          label.innerHTML = `<span>ステージ${i}</span><input type="number" inputmode="numeric" min="-9999999999" max="9999999999" step="1" name="p${person}_stage${i}" value="0" aria-label="${person}人目 ステージ${i}の点数">`;
           host.appendChild(label);
         }
       });
@@ -465,15 +501,27 @@
       currentRankPage = page;
       if (updateUrl) {
         const url = new URL(location.href);
-        url.search = `?view=${page}`;
-        url.hash = "";
+        // ランキングページはハッシュで指定し、管理者用の ?view=ranking と混同しないようにする。
+        url.hash = page;
         history.pushState({ rankPage: page }, "", url);
       }
       switchPanel("ranking");
       renderRanking();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+    function updateCommunityScoreTotal() {
+      const target = $("communityScoreTotal");
+      if (!target) return;
+      if (!scoresLoaded) {
+        target.innerHTML = '—<small>点</small>';
+        return;
+      }
+      // ソロ登録は1人分、ペア登録は2人分の点数を足し合わせ、登録済みスコア全体の合計を表示する。
+      const overallTotal = allEntries.reduce((sum, row) => sum + totalScore(row), 0);
+      target.innerHTML = `${formatScore(overallTotal)}<small>点</small>`;
+    }
     function renderRanking() {
+      updateCommunityScoreTotal();
       const topView = currentRankPage === "ranking";
       const soloView = currentRankPage === "solo";
       const pairView = currentRankPage === "pair";
@@ -513,11 +561,12 @@
         const { data, error } = await db.from("score_entries").select("*").order("created_at", { ascending: true });
         if (error) throw error;
         allEntries = data || [];
+        scoresLoaded = true;
         renderRanking();
         if (currentUser && currentUser.id === ADMIN_USER_ID) renderEntriesTable();
         const time = new Date();
         $("lastUpdated").textContent = `最終更新 ${time.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}`;
-        setConnection(true, "ランキング更新可能");
+        setConnection(true, "Supabaseに接続済み");
         hideMessage($("rankingMessage"));
       } catch (error) {
         setConnection(false, "データの読み込みに失敗");
@@ -578,10 +627,18 @@
       for (let i = 1; i <= STAGES; i++) {
         const v1 = $("scoreForm").elements[`p1_stage${i}`].value;
         const v2 = $("scoreForm").elements[`p2_stage${i}`].value;
-        if (v1.trim() === "" || !Number.isInteger(Number(v1))) throw new Error(`1人目のステージ${i}は整数で入力してください。`);
-        if (mode === "pair" && (v2.trim() === "" || !Number.isInteger(Number(v2)))) throw new Error(`2人目のステージ${i}は整数で入力してください。`);
-        payload[`p1_stage${i}`] = Number(v1);
-        payload[`p2_stage${i}`] = mode === "pair" ? Number(v2 || 0) : 0;
+        const score1 = Number(v1);
+        const score2 = Number(v2 || 0);
+        const minScore = -9999999999;
+        const maxScore = 9999999999;
+        if (v1.trim() === "" || !Number.isSafeInteger(score1) || score1 < minScore || score1 > maxScore) {
+          throw new Error(`1人目のステージ${i}は-9,999,999,999〜9,999,999,999の整数で入力してください。`);
+        }
+        if (mode === "pair" && (v2.trim() === "" || !Number.isSafeInteger(score2) || score2 < minScore || score2 > maxScore)) {
+          throw new Error(`2人目のステージ${i}は-9,999,999,999〜9,999,999,999の整数で入力してください。`);
+        }
+        payload[`p1_stage${i}`] = score1;
+        payload[`p2_stage${i}`] = mode === "pair" ? score2 : 0;
       }
       return payload;
     }
@@ -681,8 +738,11 @@
     }
     function rankingShareUrl() {
       const url = new URL(location.href);
-      url.search = "?view=ranking";
-      url.hash = "";
+      // QRコードは常に公開用の基本URLにする。管理者用 ?view=ranking は共有しない。
+      url.pathname = url.pathname.replace(/viewranking\/?$/i, "");
+      if (!url.pathname.endsWith("/")) url.pathname += "/";
+      url.search = "";
+      url.hash = "ranking";
       return url.href;
     }
     function openQrModal() {
@@ -711,8 +771,11 @@
         button.addEventListener("click", () => navigateRankPage(button.dataset.rankPage));
       });
       window.addEventListener("popstate", () => {
-        const view = new URLSearchParams(location.search).get("view");
-        currentRankPage = ["ranking", "solo", "pair"].includes(view) ? view : "ranking";
+        const hashView = location.hash.replace(/^#/, "");
+        const queryView = new URLSearchParams(location.search).get("view");
+        currentRankPage = ["ranking", "solo", "pair"].includes(hashView)
+          ? hashView
+          : (["solo", "pair"].includes(queryView) ? queryView : "ranking");
         switchPanel("ranking");
         renderRanking();
       });
