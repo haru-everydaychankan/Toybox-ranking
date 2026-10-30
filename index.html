@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#173456">
   <meta name="description" content="イベントのソロ・ペアランキングとステージ別スコアを管理するWebアプリ">
-  <title>みんなのランキング</title>
+  <title>TOY BOX RANKING</title>
   <style>
     @font-face {
       font-family: "Keifont";
@@ -286,20 +286,56 @@
       .page-intro { align-items: flex-start; padding: 14px; }
     }
 
+
+    /* Pair ranking: show each member's own total beside the pair total. */
+    .pair-rank-row { grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; }
+    .pair-competitor { display: block; min-width: 0; }
+    .pair-member-scores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; min-width: 0; }
+    .pair-member-score {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      min-width: 0; padding: 8px 10px; border: 1px solid #e2eaf2; border-radius: 11px;
+      background: #f8fbff;
+    }
+    .pair-member-name { min-width: 0; overflow-wrap: anywhere; font-weight: 900; line-height: 1.4; }
+    .pair-member-score strong { flex: 0 0 auto; white-space: nowrap; color: #174f91; font-size: .92rem; font-weight: 1000; }
+    .pair-member-score strong small { margin-left: 2px; color: #657a96; font-size: .68rem; font-weight: 800; }
+    .pair-competitor .competitor-sub { margin-top: 5px; }
+    .pair-score-total { padding-left: 8px; }
+    .pair-score-total small { white-space: nowrap; }
+    @media (max-width: 760px) {
+      .pair-rank-row { grid-template-columns: 36px minmax(0, 1fr); align-items: start; gap: 8px; padding: 12px 10px; }
+      .pair-rank-row .rank-number { grid-column: 1; grid-row: 1 / span 2; }
+      .pair-rank-row .pair-competitor { grid-column: 2; grid-row: 1; }
+      .pair-member-scores { grid-template-columns: 1fr; gap: 6px; }
+      .pair-member-score { padding: 8px 10px; }
+      .pair-rank-row .pair-score-total {
+        grid-column: 2; grid-row: 2; display: flex; align-items: baseline; justify-content: space-between;
+        margin-top: 2px; padding: 7px 10px 0; border-top: 1px dashed #d8e5f3; text-align: left;
+        font-size: 1rem;
+      }
+      .pair-rank-row .pair-score-total small { display: inline; margin-left: 8px; }
+    }
+    @media (max-width: 380px) {
+      .pair-rank-row { padding-left: 8px; padding-right: 8px; }
+      .pair-member-score { gap: 5px; padding: 7px 8px; }
+      .pair-member-name { font-size: .9rem; }
+      .pair-member-score strong { font-size: .86rem; }
+    }
+
   </style>
 </head>
 <body>
   <main class="page-wrap">
     <header class="hero">
-      <div class="eyebrow">TOYo SHORY MARIE!</div>
-      <h1>スコアランキング</span></h1>
-      <p>みんなのスコアがここに記録されています。<br>目指せ合計1000万！</p>
+      <div class="eyebrow">✦ TOY ADVENTURE SCORE QUEST · EST. 2026</div>
+      <h1>TOY BOX <span>RANKING</span></h1>
+      <p>おもちゃ箱から冒険へ飛び出そう！<br>ソロもペアも、みんなのスコアが大集合。</p>
       <div class="hero-scoreboard" role="status" aria-live="polite" aria-label="みんなの得点の合計">
         <span class="hero-scoreboard-icon" aria-hidden="true">★</span>
         <div class="hero-scoreboard-copy">
           <span class="hero-scoreboard-label">みんなの得点</span>
           <strong id="communityScoreTotal" class="hero-scoreboard-value">—<small>点</small></strong>
-          <span class="hero-scoreboard-note">みんなのスコア合計</span>
+          <span class="hero-scoreboard-note">全員の登録スコアの合計</span>
         </div>
       </div>
       <div class="hero-stickers" aria-hidden="true"><span class="sticker">★</span><span class="sticker">🚀</span><span class="sticker">🧸</span><span class="sticker">🪁</span></div>
@@ -314,7 +350,7 @@
 
     <section id="rankingPanel" class="panel">
       <div class="panel-head">
-        <div><h2 id="rankPageTitle">🏆 ランキングトップ</h2><p id="rankPageDescription">更新されない場合は、再読み込みボタンを押してください。</p></div>
+        <div><h2 id="rankPageTitle">🏆 ランキングトップ</h2><p id="rankPageDescription">各部門のトップ10をチェックして、全順位ページへ進もう！</p></div>
         <div class="button-row"><span class="pill">↻ 自動更新</span><button id="refreshButton" type="button" class="btn btn-quiet btn-small">再読み込み</button></div>
       </div>
       <nav class="rank-page-nav" aria-label="ランキングページ">
@@ -377,7 +413,7 @@
         <div class="entry-table-wrap"><table><thead><tr><th>形式</th><th>参加者</th><th>合計点</th><th>操作</th></tr></thead><tbody id="entriesTable"><tr><td colspan="4" class="empty-state">データを読み込んでいます…</td></tr></tbody></table></div>
       </div>
     </section>
-    <footer class="site-footer">表示されない場合はページの再読み込みをお試しください。<br>ランキングページはは期間限定です。11月2日になると閉鎖されます。</footer>
+    <footer class="site-footer">TOY ADVENTURE RANKING · オリジナルのおもちゃ箱アドベンチャーデザイン<br>ランキングは共有データです。参加者名と点数は公開されるため、個人情報は入力しないでください。</footer>
   </main>
 
   <div id="qrModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
@@ -494,13 +530,27 @@
       const rows = Number.isInteger(limit) ? allRows.slice(0, limit) : allRows;
       const countLabel = Number.isInteger(limit) ? `TOP ${limit}` : (mode === "solo" ? `${allRows.length}人` : `${allRows.length}組`);
       const list = rows.length ? `<ol class="ranking-list">${rows.map((row, index) => {
-        const competitorName = mode === "solo" ? row.rankingName : namesFor(row);
-        const score = mode === "solo" ? row.rankingScore : totalScore(row);
-        const subtitle = mode === "solo"
-          ? (row.rankingSourceMode === "pair" ? "ペア参加・個人得点" : "ソロ参加")
-          : "ペア参加・2人の合計点";
-        return `<li class="rank-row ${index < 3 ? `top-${index + 1}` : ""}"><span class="rank-number">${index + 1}</span><span class="competitor"><span class="competitor-name">${escapeHTML(competitorName)}</span><span class="competitor-sub">${subtitle}</span></span><span class="score-total">${formatScore(score)}<small>合計点</small></span></li>`;
-      }).join("")}</ol>` : `<div class="empty-state"><span class="emoji">${mode === "solo" ? "🧸" : "🧩"}</span>まだ登録データがありません。<br>ランキングにスコアが登録されると、ここに表示されます。</div>`;
+        if (mode === "pair") {
+          const player1Score = personTotalScore(row, 1);
+          const player2Score = personTotalScore(row, 2);
+          const pairScore = totalScore(row);
+          return `<li class="rank-row pair-rank-row ${index < 3 ? `top-${index + 1}` : ""}">
+            <span class="rank-number">${index + 1}</span>
+            <span class="competitor pair-competitor">
+              <span class="pair-member-scores">
+                <span class="pair-member-score"><span class="pair-member-name">${escapeHTML(row.player1_name)}</span><strong>${formatScore(player1Score)}<small>点</small></strong></span>
+                <span class="pair-member-score"><span class="pair-member-name">${escapeHTML(row.player2_name)}</span><strong>${formatScore(player2Score)}<small>点</small></strong></span>
+              </span>
+              <span class="competitor-sub">それぞれの個人得点</span>
+            </span>
+            <span class="score-total pair-score-total">${formatScore(pairScore)}<small>ペア合計</small></span>
+          </li>`;
+        }
+        const competitorName = row.rankingName;
+        const score = row.rankingScore;
+        const subtitle = row.rankingSourceMode === "pair" ? "ペア参加・個人得点" : "ソロ参加";
+        return `<li class="rank-row ${index < 3 ? `top-${index + 1}` : ""}"><span class="rank-number">${index + 1}</span><span class="competitor"><span class="competitor-name">${escapeHTML(competitorName)}</span><span class="competitor-sub">${subtitle}</span></span><span class="score-total">${formatScore(score)}<small>個人合計</small></span></li>`;
+      }).join("")}</ol>` : `<div class="empty-state"><span class="emoji">${mode === "solo" ? "🙍" : "🧩"}</span>まだ登録データがありません。<br>ランキングにスコアが登録されると、ここに表示されます。</div>`;
       return `<section class="ranking-card"><div class="ranking-card-head"><h3>${icon} ${title}</h3><small>${countLabel}</small></div>${list}</section>`;
     }
     function navigateRankPage(page, updateUrl = true) {
@@ -534,7 +584,7 @@
       const pairView = currentRankPage === "pair";
       $("rankPageTitle").textContent = topView ? "🏆 ランキングトップ" : soloView ? "🙍 ソロランキング・全順位" : "🤝 ペアランキング・全順位";
       $("rankPageDescription").textContent = topView
-        ? "自動で更新されない場合は、再読み込みボタンを押してください。"
+        ? "各部門のトップ10をチェックして、全順位ページへ進もう！"
         : soloView
           ? "ソロ参加者とペア参加者の個人得点を、すべて順位順に表示します。"
           : "ペア全組を、2人の合計点が高い順に表示します。";
@@ -573,7 +623,7 @@
         if (currentUser && currentUser.id === ADMIN_USER_ID) renderEntriesTable();
         const time = new Date();
         $("lastUpdated").textContent = `最終更新 ${time.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}`;
-        setConnection(true, "ランキング更新可能");
+        setConnection(true, "Supabaseに接続済み");
         hideMessage($("rankingMessage"));
       } catch (error) {
         setConnection(false, "データの読み込みに失敗");
