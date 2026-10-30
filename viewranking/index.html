@@ -286,6 +286,42 @@
       .page-intro { align-items: flex-start; padding: 14px; }
     }
 
+
+    /* Pair ranking: show each member's own total beside the pair total. */
+    .pair-rank-row { grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; }
+    .pair-competitor { display: block; min-width: 0; }
+    .pair-member-scores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; min-width: 0; }
+    .pair-member-score {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      min-width: 0; padding: 8px 10px; border: 1px solid #e2eaf2; border-radius: 11px;
+      background: #f8fbff;
+    }
+    .pair-member-name { min-width: 0; overflow-wrap: anywhere; font-weight: 900; line-height: 1.4; }
+    .pair-member-score strong { flex: 0 0 auto; white-space: nowrap; color: #174f91; font-size: .92rem; font-weight: 1000; }
+    .pair-member-score strong small { margin-left: 2px; color: #657a96; font-size: .68rem; font-weight: 800; }
+    .pair-competitor .competitor-sub { margin-top: 5px; }
+    .pair-score-total { padding-left: 8px; }
+    .pair-score-total small { white-space: nowrap; }
+    @media (max-width: 760px) {
+      .pair-rank-row { grid-template-columns: 36px minmax(0, 1fr); align-items: start; gap: 8px; padding: 12px 10px; }
+      .pair-rank-row .rank-number { grid-column: 1; grid-row: 1 / span 2; }
+      .pair-rank-row .pair-competitor { grid-column: 2; grid-row: 1; }
+      .pair-member-scores { grid-template-columns: 1fr; gap: 6px; }
+      .pair-member-score { padding: 8px 10px; }
+      .pair-rank-row .pair-score-total {
+        grid-column: 2; grid-row: 2; display: flex; align-items: baseline; justify-content: space-between;
+        margin-top: 2px; padding: 7px 10px 0; border-top: 1px dashed #d8e5f3; text-align: left;
+        font-size: 1rem;
+      }
+      .pair-rank-row .pair-score-total small { display: inline; margin-left: 8px; }
+    }
+    @media (max-width: 380px) {
+      .pair-rank-row { padding-left: 8px; padding-right: 8px; }
+      .pair-member-score { gap: 5px; padding: 7px 8px; }
+      .pair-member-name { font-size: .9rem; }
+      .pair-member-score strong { font-size: .86rem; }
+    }
+
   </style>
 </head>
 <body>
@@ -319,21 +355,21 @@
       </div>
       <nav class="rank-page-nav" aria-label="ランキングページ">
         <button type="button" class="rank-page-btn active" data-rank-page="ranking">🏆 ランキングトップ</button>
-        <button type="button" class="rank-page-btn" data-rank-page="solo">⭐ ソロ全順位</button>
+        <button type="button" class="rank-page-btn" data-rank-page="solo">🙍 ソロ全順位</button>
         <button type="button" class="rank-page-btn" data-rank-page="pair">🤝 ペア全順位</button>
       </nav>
       <div id="rankingTopContent">
         <div id="rankingGrid" class="ranking-grid">
-          <div class="ranking-card"><div class="ranking-card-head"><h3>⭐ ソロ部門</h3><small>TOP 10</small></div><div class="empty-state"><span class="emoji">🧸</span>データを読み込んでいます…</div></div>
+          <div class="ranking-card"><div class="ranking-card-head"><h3>🙍 ソロ部門</h3><small>TOP 10</small></div><div class="empty-state"><span class="emoji">🧸</span>データを読み込んでいます…</div></div>
           <div class="ranking-card"><div class="ranking-card-head"><h3>🤝 ペア部門</h3><small>TOP 10</small></div><div class="empty-state"><span class="emoji">🧩</span>データを読み込んでいます…</div></div>
         </div>
         <div class="rank-page-choices">
-          <button type="button" class="rank-choice solo-choice" data-rank-page="solo"><span class="choice-icon">⭐</span><span class="choice-text"><strong>ソロランキングを全部見る</strong><small>ソロ参加者と、ペア参加者それぞれの個人得点を全順位で表示</small></span><span class="choice-arrow">➜</span></button>
+          <button type="button" class="rank-choice solo-choice" data-rank-page="solo"><span class="choice-icon">🙍</span><span class="choice-text"><strong>ソロランキングを全部見る</strong><small>ソロ参加者と、ペア参加者それぞれの個人得点を全順位で表示</small></span><span class="choice-arrow">➜</span></button>
           <button type="button" class="rank-choice pair-choice" data-rank-page="pair"><span class="choice-icon">🤝</span><span class="choice-text"><strong>ペアランキングを全部見る</strong><small>ペア全組を合計点の高い順に表示</small></span><span class="choice-arrow">➜</span></button>
         </div>
       </div>
       <div id="soloRankingContent" class="hidden">
-        <div class="page-intro solo-intro"><span class="page-intro-icon">⭐</span><div><h3>ソロランキング・全順位</h3><p>ソロ参加者に加えて、ペアで参加した各プレイヤーも個人得点でランクインします。</p></div></div>
+        <div class="page-intro solo-intro"><span class="page-intro-icon">🙍</span><div><h3>ソロランキング・全順位</h3><p>ソロ参加者に加えて、ペアで参加した各プレイヤーも個人得点でランクインします。</p></div></div>
         <div id="soloRankingFull"></div>
       </div>
       <div id="pairRankingContent" class="hidden">
@@ -494,13 +530,27 @@
       const rows = Number.isInteger(limit) ? allRows.slice(0, limit) : allRows;
       const countLabel = Number.isInteger(limit) ? `TOP ${limit}` : (mode === "solo" ? `${allRows.length}人` : `${allRows.length}組`);
       const list = rows.length ? `<ol class="ranking-list">${rows.map((row, index) => {
-        const competitorName = mode === "solo" ? row.rankingName : namesFor(row);
-        const score = mode === "solo" ? row.rankingScore : totalScore(row);
-        const subtitle = mode === "solo"
-          ? (row.rankingSourceMode === "pair" ? "ペア参加・個人得点" : "ソロ参加")
-          : "ペア参加・2人の合計点";
-        return `<li class="rank-row ${index < 3 ? `top-${index + 1}` : ""}"><span class="rank-number">${index + 1}</span><span class="competitor"><span class="competitor-name">${escapeHTML(competitorName)}</span><span class="competitor-sub">${subtitle}</span></span><span class="score-total">${formatScore(score)}<small>合計点</small></span></li>`;
-      }).join("")}</ol>` : `<div class="empty-state"><span class="emoji">${mode === "solo" ? "🧸" : "🧩"}</span>まだ登録データがありません。<br>ランキングにスコアが登録されると、ここに表示されます。</div>`;
+        if (mode === "pair") {
+          const player1Score = personTotalScore(row, 1);
+          const player2Score = personTotalScore(row, 2);
+          const pairScore = totalScore(row);
+          return `<li class="rank-row pair-rank-row ${index < 3 ? `top-${index + 1}` : ""}">
+            <span class="rank-number">${index + 1}</span>
+            <span class="competitor pair-competitor">
+              <span class="pair-member-scores">
+                <span class="pair-member-score"><span class="pair-member-name">${escapeHTML(row.player1_name)}</span><strong>${formatScore(player1Score)}<small>点</small></strong></span>
+                <span class="pair-member-score"><span class="pair-member-name">${escapeHTML(row.player2_name)}</span><strong>${formatScore(player2Score)}<small>点</small></strong></span>
+              </span>
+              <span class="competitor-sub">それぞれの個人得点</span>
+            </span>
+            <span class="score-total pair-score-total">${formatScore(pairScore)}<small>ペア合計</small></span>
+          </li>`;
+        }
+        const competitorName = row.rankingName;
+        const score = row.rankingScore;
+        const subtitle = row.rankingSourceMode === "pair" ? "ペア参加・個人得点" : "ソロ参加";
+        return `<li class="rank-row ${index < 3 ? `top-${index + 1}` : ""}"><span class="rank-number">${index + 1}</span><span class="competitor"><span class="competitor-name">${escapeHTML(competitorName)}</span><span class="competitor-sub">${subtitle}</span></span><span class="score-total">${formatScore(score)}<small>個人合計</small></span></li>`;
+      }).join("")}</ol>` : `<div class="empty-state"><span class="emoji">${mode === "solo" ? "🙍" : "🧩"}</span>まだ登録データがありません。<br>ランキングにスコアが登録されると、ここに表示されます。</div>`;
       return `<section class="ranking-card"><div class="ranking-card-head"><h3>${icon} ${title}</h3><small>${countLabel}</small></div>${list}</section>`;
     }
     function navigateRankPage(page, updateUrl = true) {
@@ -532,7 +582,7 @@
       const topView = currentRankPage === "ranking";
       const soloView = currentRankPage === "solo";
       const pairView = currentRankPage === "pair";
-      $("rankPageTitle").textContent = topView ? "🏆 ランキングトップ" : soloView ? "⭐ ソロランキング・全順位" : "🤝 ペアランキング・全順位";
+      $("rankPageTitle").textContent = topView ? "🏆 ランキングトップ" : soloView ? "🙍 ソロランキング・全順位" : "🤝 ペアランキング・全順位";
       $("rankPageDescription").textContent = topView
         ? "各部門のトップ10をチェックして、全順位ページへ進もう！"
         : soloView
@@ -546,9 +596,9 @@
         if (button.classList.contains("rank-page-btn")) button.setAttribute("aria-current", button.dataset.rankPage === currentRankPage ? "page" : "false");
       });
       if (topView) {
-        $("rankingGrid").innerHTML = renderRankCard("solo", "ソロ部門", "⭐", 10) + renderRankCard("pair", "ペア部門", "🤝", 10);
+        $("rankingGrid").innerHTML = renderRankCard("solo", "ソロ部門", "🙍", 10) + renderRankCard("pair", "ペア部門", "🤝", 10);
       } else if (soloView) {
-        $("soloRankingFull").innerHTML = renderRankCard("solo", "ソロ部門・全順位", "⭐");
+        $("soloRankingFull").innerHTML = renderRankCard("solo", "ソロ部門・全順位", "🙍");
       } else {
         $("pairRankingFull").innerHTML = renderRankCard("pair", "ペア部門・全順位", "🤝");
       }
