@@ -532,7 +532,7 @@
       const topView = currentRankPage === "ranking";
       const soloView = currentRankPage === "solo";
       const pairView = currentRankPage === "pair";
-      $("rankPageTitle").textContent = topView ? "🏆 ランキングトップ" : soloView ? "⭐ ソロランキング・全順位" : "🤝 ペアランキング・全順位";
+      $("rankPageTitle").textContent = topView ? "🏆 ランキングトップ" : soloView ? "🙍 ソロランキング・全順位" : "🤝 ペアランキング・全順位";
       $("rankPageDescription").textContent = topView
         ? "自動で更新されない場合は、再読み込みボタンを押してください。"
         : soloView
@@ -546,9 +546,9 @@
         if (button.classList.contains("rank-page-btn")) button.setAttribute("aria-current", button.dataset.rankPage === currentRankPage ? "page" : "false");
       });
       if (topView) {
-        $("rankingGrid").innerHTML = renderRankCard("solo", "ソロ部門", "⭐", 10) + renderRankCard("pair", "ペア部門", "🤝", 10);
+        $("rankingGrid").innerHTML = renderRankCard("solo", "ソロ部門", "🙍", 10) + renderRankCard("pair", "ペア部門", "🤝", 10);
       } else if (soloView) {
-        $("soloRankingFull").innerHTML = renderRankCard("solo", "ソロ部門・全順位", "⭐");
+        $("soloRankingFull").innerHTML = renderRankCard("solo", "ソロ部門・全順位", "🙍");
       } else {
         $("pairRankingFull").innerHTML = renderRankCard("pair", "ペア部門・全順位", "🤝");
       }
