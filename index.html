@@ -327,9 +327,9 @@
 <body>
   <main class="page-wrap">
     <header class="hero">
-      <div class="eyebrow">✦ TOY ADVENTURE SCORE QUEST · EST. 2026</div>
-      <h1>TOY BOX <span>RANKING</span></h1>
-      <p>おもちゃ箱から冒険へ飛び出そう！<br>ソロもペアも、みんなのスコアが大集合。</p>
+      <div class="eyebrow">TOYoSHORYMARIE!</div>
+      <h1>みんなのランキング</span></h1>
+      <p>みんなのスコアがここに記録されています。<br>目指せ合計1000万点！</p>
       <div class="hero-scoreboard" role="status" aria-live="polite" aria-label="みんなの得点の合計">
         <span class="hero-scoreboard-icon" aria-hidden="true">★</span>
         <div class="hero-scoreboard-copy">
@@ -413,7 +413,7 @@
         <div class="entry-table-wrap"><table><thead><tr><th>形式</th><th>参加者</th><th>合計点</th><th>操作</th></tr></thead><tbody id="entriesTable"><tr><td colspan="4" class="empty-state">データを読み込んでいます…</td></tr></tbody></table></div>
       </div>
     </section>
-    <footer class="site-footer">TOY ADVENTURE RANKING · オリジナルのおもちゃ箱アドベンチャーデザイン<br>ランキングは共有データです。参加者名と点数は公開されるため、個人情報は入力しないでください。</footer>
+    <footer class="site-footer">表示されない場合は、ページのリロードをお試しください。<br>本ページは期間限定です。11月2日に閉鎖されます。</footer>
   </main>
 
   <div id="qrModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
@@ -584,10 +584,10 @@
       const pairView = currentRankPage === "pair";
       $("rankPageTitle").textContent = topView ? "🏆 ランキングトップ" : soloView ? "🙍 ソロランキング・全順位" : "🤝 ペアランキング・全順位";
       $("rankPageDescription").textContent = topView
-        ? "各部門のトップ10をチェックして、全順位ページへ進もう！"
+        ? "自動で更新されない場合は、再読み込みボタンを押してください。"
         : soloView
-          ? "ソロ参加者とペア参加者の個人得点を、すべて順位順に表示します。"
-          : "ペア全組を、2人の合計点が高い順に表示します。";
+          ? "自動で更新されない場合は、再読み込みボタンを押してください。"
+          : "自動で更新されない場合は、再読み込みボタンを押してください。";
       $("rankingTopContent").classList.toggle("hidden", !topView);
       $("soloRankingContent").classList.toggle("hidden", !soloView);
       $("pairRankingContent").classList.toggle("hidden", !pairView);
@@ -623,7 +623,7 @@
         if (currentUser && currentUser.id === ADMIN_USER_ID) renderEntriesTable();
         const time = new Date();
         $("lastUpdated").textContent = `最終更新 ${time.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}`;
-        setConnection(true, "Supabaseに接続済み");
+        setConnection(true, "ランキング更新可能");
         hideMessage($("rankingMessage"));
       } catch (error) {
         setConnection(false, "データの読み込みに失敗");
